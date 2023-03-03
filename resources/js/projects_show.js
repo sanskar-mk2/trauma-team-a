@@ -1,7 +1,11 @@
 import dayjs from "dayjs";
 import comp_matrix from "./comp_matrix";
-import { prepare, prepare_future, prepare_growth_model } from "./prepare_matrix";
-import { get_extra_info } from "./extra_method";
+import {
+    prepare,
+    prepare_future,
+    prepare_growth_model,
+} from "./prepare_matrix";
+import { get_extra_info, get_sales } from "./extra_method";
 
 export default function growth(
     strengths,
@@ -10,6 +14,7 @@ export default function growth(
     expected_competitors,
     order_of_entry
 ) {
+
     return {
         erosion: -5,
         matrix: prepare(strengths, years),
@@ -98,6 +103,14 @@ export default function growth(
             }
             return this_year_vol;
         },
+        get_current: function (strength) {
+            const year = years[years.length - 1];
+            const vol = this.matrix[strength][year];
+            const sales = get_sales(strength, year, strengths);
+            return (sales / vol).toFixed(2);
+        },
+
+        
     };
 }
 

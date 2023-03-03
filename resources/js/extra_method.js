@@ -27,3 +27,9 @@ export const get_extra_info = (
     });
     return info;
 };
+
+export const get_sales = (strength, year, strengths) => {
+    const str = strengths.find((m) => m.name == strength);
+    const sls = str["market_datas"].find((m) => m.year == year)["sales"];
+    return sls;
+};
