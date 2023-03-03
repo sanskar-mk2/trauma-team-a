@@ -1,4 +1,4 @@
-<section class="bg-blue-100 p-4 rounded m-4">
+<section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto">
     Market Volumes: {{ $project->marketMetric->evaluate_by }}
     <table class="w-full">
         <thead>

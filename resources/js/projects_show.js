@@ -1,11 +1,51 @@
 import dayjs from "dayjs";
 import comp_matrix from "./comp_matrix";
 import { prepare, prepare_future } from "./prepare_matrix";
+import { get_extra_info } from "./extra_method";
 
-export default function growth(strengths, years, extra_years) {
+export default function growth(
+    strengths,
+    years,
+    extra_years,
+    expected_competitors,
+    order_of_entry
+) {
     return {
         matrix: prepare(strengths, years),
         future_matrix: prepare_future(strengths, extra_years),
+        extra_info: get_extra_info(
+            extra_years,
+            expected_competitors,
+            order_of_entry
+        ),
+        get_market_share: function (year) {
+            const comp = this.extra_info[year].expected_competitors;
+            const order = this.extra_info[year].order_of_entry;
+
+            const players = comp_matrix.find((m) => m.no_of_players == comp);
+
+            if (players == undefined) {
+                return 0;
+            }
+
+            const share = players.share_order_of_entry[order];
+
+            if (share == undefined) {
+                return 0;
+            } else {
+                return share;
+            }
+        },
+        get_market_size: function (strength, year) {
+            const ems = this.get_effective_market_share(year) / 100;
+            const vol = this.calc_vol(year, strength);
+            return (ems * vol).toFixed(0);
+        },
+        get_effective_market_share: function (year) {
+            const ms = this.get_market_share(year);
+            const sales_months = this.extra_info[year].sales_months;
+            return ms * (sales_months / 12);
+        },
         calc_perc: function (year, strength) {
             const this_year = dayjs(year);
             const prev_year = this_year.subtract(1, "year");
@@ -88,32 +128,6 @@ export default function growth(strengths, years, extra_years) {
 //         const str = strengths.find((m) => m.name == strength);
 //         const sls = str["market_datas"].find((m) => m.year == year)["sales"];
 //         return sls;
-//     };
-
-//     const get_extra_info = () => {
-//         const info = [];
-//         extra_years.forEach((year, index) => {
-//             if (index == 0) {
-//                 info[year] = {
-//                     sales_months: 3,
-//                     expected_competitors: expected_competitors,
-//                     order_of_entry: order_of_entry,
-//                 };
-//             } else if (index == extra_years.length - 1) {
-//                 info[year] = {
-//                     sales_months: 9,
-//                     expected_competitors: expected_competitors,
-//                     order_of_entry: order_of_entry,
-//                 };
-//             } else {
-//                 info[year] = {
-//                     sales_months: 12,
-//                     expected_competitors: expected_competitors,
-//                     order_of_entry: order_of_entry,
-//                 };
-//             }
-//         });
-//         return info;
 //     };
 
 //     const prepare_selling_price = (

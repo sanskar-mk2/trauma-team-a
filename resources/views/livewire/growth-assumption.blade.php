@@ -1,4 +1,4 @@
-<section class="bg-blue-100 p-4 rounded m-4">
+<section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto">
     Growth Assumptions
     <table class="w-full">
         <thead>
