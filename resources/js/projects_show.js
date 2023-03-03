@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import comp_matrix from "./comp_matrix";
-import { prepare, prepare_future } from "./prepare_matrix";
+import { prepare, prepare_future, prepare_growth_model } from "./prepare_matrix";
 import { get_extra_info } from "./extra_method";
 
 export default function growth(
@@ -11,8 +11,12 @@ export default function growth(
     order_of_entry
 ) {
     return {
+        erosion: -5,
         matrix: prepare(strengths, years),
         future_matrix: prepare_future(strengths, extra_years),
+        bwac: comp_matrix.find((m) => m.no_of_players == expected_competitors)
+            .bwac,
+        growth: prepare_growth_model(strengths),
         extra_info: get_extra_info(
             extra_years,
             expected_competitors,
