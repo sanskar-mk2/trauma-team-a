@@ -1,4 +1,4 @@
-<section>
+<section class="bg-blue-100 p-4 rounded m-4">
     <p>Market Sales</p>
     <table>
         <thead>
