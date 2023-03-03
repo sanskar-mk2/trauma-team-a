@@ -14,5 +14,5 @@
     <livewire:market-volume :project="$project" />
     <livewire:market-sale :project="$project" />
     <livewire:info :project="$project" />
-    <livewire:selling-price :project="$project" />
+    {{-- <livewire:selling-price :project="$project" /> --}}
 </div>

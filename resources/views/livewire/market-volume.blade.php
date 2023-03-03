@@ -15,12 +15,15 @@
                 <tr>
                     <td class="border border-black">{{ $strength->name }}</td>
                     @foreach ($project->years as $year)
-                        <td class="border w-20 border-gray-800">
-                            <input class="w-20" type="text" x-model="matrix['{{ $strength->name }}']['{{ $year }}']" />
+                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                            x-data="{editing:false}" class="border w-20 border-gray-800">
+                            <input x-ref="input" x-cloak x-show="editing" class="w-20" type="text" x-model="matrix['{{ $strength->name }}']['{{ $year }}']" />
+                            <span x-show="!editing" x-cloak class="bg-yellow-100 block w-full"
+                                x-text="(Math.abs(Number(matrix['{{ $strength->name }}']['{{ $year }}'])) / 1.0e+6).toFixed(2) + 'M'"></span>
                         </td>
                     @endforeach
                     @foreach ($project->extra_years as $year)
-                        <td class="border-gray-800 w-20 border" x-text="calc_vol(@js($year), @js($strength->name))"></td>
+                        <td class="border-gray-800 w-20 border" x-text="(Math.abs(Number(calc_vol(@js($year), @js($strength->name)))) / 1.0e+6).toFixed(2) + 'M'"></td>
                     @endforeach
                 </tr>
             @endforeach
