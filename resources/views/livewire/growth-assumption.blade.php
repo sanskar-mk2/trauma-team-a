@@ -1,5 +1,27 @@
-<section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto">
-    Growth Assumptions
+<section x-data="{matrix: @entangle('matrix')}" class="bg-blue-100 p-4 rounded m-4 overflow-x-auto">
+    <div class="flex justify-between p-2">
+        <div>
+            <h3 class="inline text-lg">Growth Assumptions</h3>
+            <span wire:click="saveMatrix"
+                class="cursor-pointer px-4 text-lg">
+                💾
+            </span>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <div class="inline-block bg-yellow-100 w-4 h-4"></div>
+                <span>Editable</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="inline-block bg-red-200 w-4 h-4"></div>
+                <span>Unsaved Value, Editable</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="inline-block bg-green-200 w-4 h-4"></div>
+                <span>Custom Value, Editable</span>
+            </div>
+        </div>
+    </div>
     <table class="w-full">
         <thead>
             <th class="border border-black">Strengths</th>
@@ -20,11 +42,17 @@
                     @foreach ($project->extra_years as $year)
                         <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
                             x-data="{editing:false}" class="w-20 border border-gray-800">
-                            <input x-cloak x-ref="input" x-show="editing" class="w-20" type="text"
-                                x-model="future_matrix['{{ $strength->name }}']['{{ $year }}']" />
+                            <input x-cloak x-ref="input" wire:model="matrix.{{ $strength->name }}.{{ $year }}.0" x-show="editing" class="w-20" type="text"
+                                 />
                             <span x-show="!editing" x-cloak
                                 class="bg-yellow-100 w-full block"
-                                x-text="`${future_matrix['{{ $strength->name }}']['{{ $year }}']}%`"></span>
+                                :class="{
+                                    'bg-green-200': matrix['{{ $strength->name }}']['{{ $year }}'][2] && matrix['{{ $strength->name }}']['{{ $year }}'][1] == matrix['{{ $strength->name }}']['{{ $year }}'][0],
+                                    'bg-red-200': matrix['{{ $strength->name }}']['{{ $year }}'][1] != matrix['{{ $strength->name }}']['{{ $year }}'][0]
+                                }"
+                                >
+                                {{ $matrix[$strength->name][$year][0] }}%
+                            </span>
                         </td>
                     @endforeach
                 </tr>
