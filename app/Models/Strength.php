@@ -43,7 +43,7 @@ class Strength extends Model
 
     public function get_market_volume($year)
     {
-        return $this->marketVolumes->where('year', $year)->first()->volume;
+        return $this->marketVolumes->where('year', $year)->first()->volume ?? null;
     }
 
     public function get_volume($year)

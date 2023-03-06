@@ -7,20 +7,7 @@
                 💾
             </span>
         </div>
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-2">
-                <div class="inline-block bg-yellow-100 w-4 h-4"></div>
-                <span>Editable</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="inline-block bg-red-200 w-4 h-4"></div>
-                <span>Unsaved Value, Editable</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="inline-block bg-green-200 w-4 h-4"></div>
-                <span>Custom Value, Editable</span>
-            </div>
-        </div>
+        @include('projects.partials.legend')
     </div>
     <table class="w-full">
         <thead>
@@ -29,7 +16,11 @@
                 <th class="border w-20 border-black">{{ date('Y', strtotime($year)) }}</th>
             @endforeach
             @foreach ($project->extra_years as $year)
-                <th class="border w-20 border-black">{{ date('Y', strtotime($year)) }}</th>
+                @if (date('Y', strtotime($year)) == date('Y', strtotime($project->productMetric->launch_date)))
+                    <th class="border bg-purple-200 w-20 border-black">{{ date('Y', strtotime($year)) }}</th>
+                @else
+                    <th class="border w-20 border-black">{{ date('Y', strtotime($year)) }}</th>
+                @endif
             @endforeach
         </thead>
         <tbody>
@@ -37,7 +28,9 @@
                 <tr>
                     <td class="border border-black">{{ $strength->name }}</td>
                     @foreach ($project->years as $year)
-                        <td x-text="calc_perc('{{ $year }}', '{{ $strength->name }}')" class="border border-gray-800"></td>
+                        <td class="border border-gray-800">
+                            {{ $this->calculate_perc($year, $strength->name, $reevaluate) }}
+                        </td>
                     @endforeach
                     @foreach ($project->extra_years as $year)
                         <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
