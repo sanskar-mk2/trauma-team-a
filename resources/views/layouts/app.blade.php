@@ -6,8 +6,13 @@
     @vite('resources/css/app.css')
     @vite('resources/js/app.js')
     @livewireStyles
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 </head>
-<body class="font-nunito">
+<body class="font-nunito min-h-screen">
     @yield('content')
     @livewireScripts
 </body>

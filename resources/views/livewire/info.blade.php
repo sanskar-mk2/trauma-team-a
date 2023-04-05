@@ -11,39 +11,63 @@
         </thead>
         <tbody>
             <tr>
-            <td>Sales Months</td>
-            @foreach ($project->extra_years as $year)
-                <td class="border w-20 border-gray-800" x-text="extra_info['{{ $year }}']['sales_months']">
-                </td>
-            @endforeach
+                <td>Sales Months</td>
+                @foreach ($project->extra_years as $year)
+                    <td class="border w-20 border-gray-800">
+                        {{ $extra_info[$year]['sales_months'] }}
+                    </td>
+                @endforeach
             </tr>
             <tr>
             <td>Expected Competitors</td>
             @foreach ($project->extra_years as $year)
-
-                <td class="border w-20 border-gray-800">
-                    <input class="w-20" type="text" x-model="extra_info['{{ $year }}']['expected_competitors']" />
+                <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                    x-data="{editing:false}" class="w-20 border border-gray-800">
+                    <input x-cloak x-ref="input" wire:model="extra_info.{{ $year }}.expected_competitors"
+                        x-show="editing" class="w-20" type="text"/>
+                    <span x-show="!editing" x-cloak
+                        class="bg-yellow-100 w-full block"
+                        {{-- :class="{
+                            'bg-green-200': matrix['{{ $strength->name }}']['{{ $year }}'][2] && matrix['{{ $strength->name }}']['{{ $year }}'][1] == matrix['{{ $strength->name }}']['{{ $year }}'][0],
+                            'bg-red-200': matrix['{{ $strength->name }}']['{{ $year }}'][1] != matrix['{{ $strength->name }}']['{{ $year }}'][0]
+                        }" --}}
+                        >
+                        {{ $extra_info[$year]['expected_competitors'] }}
+                    </span>
                 </td>
             @endforeach
             </tr>
             <tr>
             <td>Order of Entry</td>
             @foreach ($project->extra_years as $year)
-                <td class="border w-20 border-gray-800">
-                    <input class="w-20" type="text" x-model="extra_info['{{ $year }}']['order_of_entry']" />
+                <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                    x-data="{editing:false}" class="w-20 border border-gray-800">
+                    <input x-cloak x-ref="input" wire:model="extra_info.{{ $year }}.order_of_entry"
+                        x-show="editing" class="w-20" type="text"/>
+                    <span x-show="!editing" x-cloak
+                        class="bg-yellow-100 w-full block"
+                        {{-- :class="{
+                            'bg-green-200': matrix['{{ $strength->name }}']['{{ $year }}'][2] && matrix['{{ $strength->name }}']['{{ $year }}'][1] == matrix['{{ $strength->name }}']['{{ $year }}'][0],
+                            'bg-red-200': matrix['{{ $strength->name }}']['{{ $year }}'][1] != matrix['{{ $strength->name }}']['{{ $year }}'][0]
+                        }" --}}
+                        >
+                        {{ $extra_info[$year]['order_of_entry'] }}
+                    </span>
                 </td>
             @endforeach
             </tr>
             <td>Market Share</td>
             @foreach ($project->extra_years as $year)
-                <td class="border w-20 border-gray-800" x-text="get_market_share('{{ $year }}')">
+                <td class="border w-20 border-gray-800">
+                    {{ $this->get_market_share($year) . '%' }}
                 </td>
             @endforeach
             </tr>
             <tr>
             <td>Effective Market Share</td>
             @foreach ($project->extra_years as $year)
-                <td class="border w-20 border-gray-800" x-text="get_effective_market_share('{{ $year }}')">
+                <td class="border w-20 border-gray-800">
+                    {{ $this->get_effective_market_share($year) . '%' }}
                 </td>
             @endforeach
             </tr>
@@ -51,7 +75,8 @@
                 <tr>
                     <td>{{ $strength->name }}</td>
                     @foreach ($project->extra_years as $year)
-                        <td class="border w-20 border-gray-800" x-text="get_market_size('{{ $strength->name }}', '{{ $year }}')">
+                        <td class="border w-20 border-gray-800">
+                            {{ $this->get_market_size($strength->name, $year) }}
                         </td>
                     @endforeach
                 </tr>

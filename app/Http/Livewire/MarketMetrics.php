@@ -11,36 +11,49 @@ class MarketMetrics extends Component
     public $step = 0;
 
     public $search = '';
+
     public $searchList = [];
+
     public $valid_molecule = false;
 
     public $forms = [];
+
     public $selected_form = '';
 
     public $strengths = [];
-    public $selected_strengths = [];
-    public $brand_generic = "";
-    public $category = "";
-    public $products = [];
-    public $evaluate_by = "";
 
-    public $launch_date = "";
+    public $selected_strengths = [];
+
+    public $brand_generic = '';
+
+    public $category = '';
+
+    public $products = [];
+
+    public $evaluate_by = '';
+
+    public $launch_date = '';
+
     public $expected_competitors = 0;
+
     public $order_of_entry = 1;
+
     public $cogs = 0.00;
+
     public $development_cost = 0.00;
+
     public $product_metric_vali = false;
+
     public $project_id = 0;
 
     public function vali()
     {
-        if ($this->launch_date == "" || $this->expected_competitors == "" || $this->order_of_entry == "" || $this->cogs == "" || $this->development_cost == "") {
+        if ($this->launch_date == '' || $this->expected_competitors == '' || $this->order_of_entry == '' || $this->cogs == '' || $this->development_cost == '') {
             $this->product_metric_vali = false;
         } else {
             $this->product_metric_vali = true;
         }
     }
-
 
     public function updatedSearch()
     {
@@ -104,7 +117,7 @@ class MarketMetrics extends Component
     public function save_to_db($md)
     {
         $project = Project::create([
-            'name' => "Untitled Project",
+            'name' => 'Untitled Project',
         ]);
 
         $this->project_id = $project->id;
@@ -130,7 +143,7 @@ class MarketMetrics extends Component
 
         foreach ($this->products as $product) {
             $mm->productSums()->create([
-                'name' => $product
+                'name' => $product,
             ]);
         }
 
@@ -180,10 +193,10 @@ class MarketMetrics extends Component
     {
         $this->strengths = [];
         $this->selected_strengths = [];
-        $this->brand_generic = "";
-        $this->category = "";
+        $this->brand_generic = '';
+        $this->category = '';
         $this->products = [];
-        $this->evaluate_by = "";
+        $this->evaluate_by = '';
 
         $body = [
             'salt' => $this->search,
@@ -197,10 +210,11 @@ class MarketMetrics extends Component
 
     public function autofill()
     {
-        if (!count($this->selected_strengths)) {
-            $this->brand_generic = "";
-            $this->category = "";
+        if (! count($this->selected_strengths)) {
+            $this->brand_generic = '';
+            $this->category = '';
             $this->products = [];
+
             return;
         }
 

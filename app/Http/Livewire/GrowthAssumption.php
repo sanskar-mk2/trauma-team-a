@@ -41,7 +41,7 @@ class GrowthAssumption extends Component
     {
         foreach ($this->matrix as $strength => $years) {
             foreach ($years as $year => $values) {
-                if ((int)$values[0] !== $values[1]) {
+                if ((int) $values[0] !== $values[1]) {
                     $m_strength = $this->project->marketMetric->strengths->where('name', $strength)->first();
                     $growth_assumption = $m_strength->growthAssumptions->where('year', $year);
                     if ($growth_assumption->count() > 0) {
@@ -54,6 +54,7 @@ class GrowthAssumption extends Component
                 }
             }
         }
+        $this->emit('reevaluate-after-growth-change', $this->matrix);
     }
 
     public function calculate_perc($year, $strength, $reevaluate)
@@ -74,12 +75,16 @@ class GrowthAssumption extends Component
         $this_year = \Carbon\Carbon::parse($year);
         $prev_year = $this_year->subYear();
 
-        if (!$this->project->years->contains($prev_year->format('Y-m-d'))) {
+        if (! $this->project->years->contains($prev_year->format('Y-m-d'))) {
             return '—';
         } else {
             $this_vol = $matrix[$strength][$year];
             $prev_vol = $matrix[$strength][$prev_year->format('Y-m-d')];
-            return intval((($this_vol - $prev_vol) / $prev_vol) * 100) . '%';
+            if ($prev_vol == 0) {
+                return '—';
+            }
+
+            return intval((($this_vol - $prev_vol) / $prev_vol) * 100).'%';
         }
     }
 

@@ -12,7 +12,7 @@
                 <tr>
                     <td class="border border-black">{{ $strength->name }}</td>
                     @foreach ($project->years as $year)
-                        <td class="border border-gray-800">{{ $strength->get_sales($year) }}</td>
+                        <td class="border border-gray-800 w-20">{{ number_format($strength->get_sales($year) / 1e+6, 2) . 'M' }}</td>
                     @endforeach
                 </tr>
             @endforeach

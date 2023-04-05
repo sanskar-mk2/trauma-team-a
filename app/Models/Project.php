@@ -19,7 +19,7 @@ class Project extends Model
 
     protected $appends = [
         'years',
-        'extra_years'
+        'extra_years',
     ];
 
     public function marketMetric()

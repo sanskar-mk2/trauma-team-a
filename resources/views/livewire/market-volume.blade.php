@@ -44,7 +44,12 @@
                         </td>
                     @endforeach
                     @foreach ($project->extra_years as $year)
-                        <td class="border-gray-800 w-20 border" x-text="(Math.abs(Number(calc_vol(@js($year), @js($strength->name)))) / 1.0e+6).toFixed(2) + 'M'"></td>
+                        {{-- <td class="border-gray-800 w-20 border" x-text="(Math.abs(Number(calc_vol(@js($year), @js($strength->name)))) / 1.0e+6).toFixed(2) + 'M'"></td> --}}
+                        <td class="w-20 border border-gray-800">
+                            <span>
+                                {{ $this->calculate_vol($year, $strength->name) }}
+                            </span>
+                        </td>
                     @endforeach
                 </tr>
             @endforeach

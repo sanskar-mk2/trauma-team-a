@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FutureController;
 use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,3 +20,8 @@ Route::get('/', function () {
 });
 
 Route::resource('projects', ProjectController::class);
+Route::group(['prefix' => 'futures'], function () {
+    Route::get('login', [FutureController::class, 'login']);
+    Route::get('index', [FutureController::class, 'index']);
+    Route::get('new-eval', [FutureController::class, 'newEval']);
+});
