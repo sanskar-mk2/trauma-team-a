@@ -37,6 +37,24 @@ class Project extends Model
         return $this->marketMetric->strengths[0]->marketDatas->pluck('year')->sort();
     }
 
+    public function xMonthsFromLaunch($months = 60)
+    {
+        $launch = Carbon::create($this->productMetric->launch_date);
+        $dates = [];
+
+        $months_left = $months;
+
+        $launch->startOfMonth();
+
+        while ($months_left > 0) {
+            $dates[] = $launch->format('Y-01-01');
+            $launch->addMonth();
+            $months_left--;
+        }
+
+        return collect($dates)->unique()->values();
+    }
+
     public function getExtraYearsAttribute()
     {
         $last = Carbon::create($this->years->last());
@@ -83,5 +101,10 @@ class Project extends Model
         });
 
         return collect($formatted);
+    }
+
+    public function extraInfo()
+    {
+        return $this->hasMany(ExtraInfo::class);
     }
 }

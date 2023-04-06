@@ -2,3 +2,6 @@
  - Dont select all if clicking on input box
  - Add custom strength code
  - Enter or esc to deselect
+
+
+IN info, start after launch date

@@ -19,6 +19,31 @@ class Info extends Component
         return view('livewire.info');
     }
 
+    public function save()
+    {
+        // if ($this->project_name[0] !== $this->project_name[1]) {
+        //     $this->project->update(['name' => $this->project_name[0]]);
+        //     $this->project_name[1] = $this->project_name[0];
+        // }
+        foreach ($this->project->xMonthsFromLaunch() as $year) {
+            $expected_competitors_changed = $this->extra_info[$year]['expected_competitors'][0] != $this->extra_info[$year]['expected_competitors'][1];
+            $order_of_entry_changed = $this->extra_info[$year]['order_of_entry'][0] != $this->extra_info[$year]['order_of_entry'][1];
+
+            if ($expected_competitors_changed || $order_of_entry_changed) {
+                $this->project->extraInfo()->updateOrCreate(
+                    ['year' => $year],
+                    [
+                        'expected_competitors' => $this->extra_info[$year]['expected_competitors'][0],
+                        'order_of_entry' => $this->extra_info[$year]['order_of_entry'][0],
+                    ]
+                );
+
+                $this->extra_info[$year]['expected_competitors'][1] = $this->extra_info[$year]['expected_competitors'][0];
+                $this->extra_info[$year]['order_of_entry'][1] = $this->extra_info[$year]['order_of_entry'][0];
+            }
+        }
+    }
+
     public function prepare_future($strengths, $years)
     {
         $matrix = [];
@@ -39,7 +64,7 @@ class Info extends Component
     public function mount()
     {
         $this->extra_info = $this->get_extra_info(
-            $this->project->extra_years,
+            $this->project->xMonthsFromLaunch(),
             $this->project->productMetric->expected_competitors,
             $this->project->productMetric->order_of_entry
         );
@@ -96,8 +121,8 @@ class Info extends Component
 
     public function get_market_share($year)
     {
-        $comp = $this->extra_info[$year]['expected_competitors'];
-        $order = $this->extra_info[$year]['order_of_entry'];
+        $comp = $this->extra_info[$year]['expected_competitors'][0];
+        $order = $this->extra_info[$year]['order_of_entry'][0];
 
         $players = collect(config('comp_matrix'))->where('no_of_players', $comp)->first();
 
@@ -116,6 +141,10 @@ class Info extends Component
         $extra_years_length = count($extra_years);
 
         foreach ($extra_years as $index => $year) {
+            $new_expected_competitors = null;
+            $new_order_of_entry = null;
+            $extra_info_model = null;
+
             $sales_months = 12;
             if ($index == 0) {
                 $sales_months = 3;
@@ -123,10 +152,16 @@ class Info extends Component
                 $sales_months = 9;
             }
 
+            $extra_info_model = $this->project->extraInfo->where('year', $year)->first();
+            if ($extra_info_model) {
+                $new_expected_competitors = $extra_info_model->expected_competitors ?? null;
+                $new_order_of_entry = $extra_info_model->order_of_entry ?? null;
+            }
+
             $info[$year] = [
                 'sales_months' => $sales_months,
-                'expected_competitors' => $expected_competitors,
-                'order_of_entry' => $order_of_entry,
+                'expected_competitors' => [$new_expected_competitors ?? $expected_competitors, $new_expected_competitors ?? $expected_competitors],
+                'order_of_entry' => [$new_order_of_entry ?? $order_of_entry, $new_order_of_entry ?? $order_of_entry],
             ];
         }
 

@@ -3,9 +3,9 @@
     <table>
         <thead>
                 <th class="border border-black">Strengths</th>
-            @foreach ($project->years as $year)
-                <th class="border border-black">{{ date('Y', strtotime($year)) }}</th>
-            @endforeach
+                @foreach ($project->years as $year)
+                    <th class="border border-black">{{ date('Y', strtotime($year)) }}</th>
+                @endforeach
         </thead>
         <tbody>
             @foreach ($project->marketMetric->strengths as $strength)
