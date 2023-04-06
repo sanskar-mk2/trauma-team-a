@@ -56,4 +56,9 @@ class Strength extends Model
     {
         return $this->marketDatas->where('year', $year)->first()->sales;
     }
+
+    public function spuGrowth()
+    {
+        return $this->hasOne(SpuGrowth::class);
+    }
 }

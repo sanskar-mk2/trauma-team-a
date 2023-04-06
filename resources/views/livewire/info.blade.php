@@ -93,7 +93,9 @@
         <hr>
     </section>
 
-    <section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto">
+    <section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto"
+        x-data="{spu_growth_matrix: @entangle('spu_growth_matrix'), loss: @entangle('loss')}"
+    >
         <h2 class="text-2xl">Selling Price / Unit</h2>
         <table>
             <thead>
@@ -102,7 +104,102 @@
                     <th class="border border-black">Growth Percent</th>
                     <th class="border w-20 border-black">Current</th>
                     <th class="border w-20 border-black">Loe</th>
-                    <th class="border w-20 border-black">-5</th>
+                    <th x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                        x-data="{editing:false}" class="border border-gray-800">
+                        <input x-cloak x-ref="input" wire:model="loss.0"
+                            x-show="editing" type="text"/>
+                        <span x-show="!editing" x-cloak
+                            class="bg-yellow-100 w-full block"
+                            :class="{
+                                'bg-green-200': loss[1] == loss[0],
+                                'bg-red-200': loss[1] != loss[0]
+                            }"
+                        >
+                            {{ $loss[0] . '%' }}
+                        </span>
+                    </th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <th class="border w-20 border-black">
+                            {{ date('Y', strtotime($year)) }}
+                            BWAC: {{ 
+                                collect(config('comp_matrix'))
+                                    ->where('no_of_players', $extra_info[$year]['expected_competitors'][0])
+                                    ->pluck('bwac')->first();
+                             }}
+                        </th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($project->marketMetric->strengths as $strength)
+                    <tr>
+                        <td class="border border-gray-800">{{ $strength->name }}</td>
+                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                            x-data="{editing:false}" class="border border-gray-800">
+                            <input x-cloak x-ref="input" wire:model="spu_growth_matrix.{{ $strength->name }}.0"
+                                x-show="editing" type="text"/>
+                            <span x-show="!editing" x-cloak
+                                class="bg-yellow-100 w-full block"
+                                :class="{
+                                    'bg-green-200': spu_growth_matrix['{{ $strength->name }}'][1] == spu_growth_matrix['{{ $strength->name }}'][0],
+                                    'bg-red-200': spu_growth_matrix['{{ $strength->name }}'][1] != spu_growth_matrix['{{ $strength->name }}'][0]
+                                }"
+                            >
+                                {{ $spu_growth_matrix[$strength->name][0] }}
+                            </span>
+                        </td>
+                        <td class="border w-20 border-gray-800">
+                            {{
+                                number_format(
+                                    $current_matrix[$strength->name]
+                                , 2)
+                            }}
+                        </td>
+                        <td class="border w-20 border-gray-800">
+                            {{  number_format (
+                                $current_matrix[$strength->name]
+                                * (1 + ($spu_growth_matrix[$strength->name][0] / 100)) ** $project->xMonthsFromLaunch()->count()
+                                , 2)
+                            }}
+                        </td>
+                        <td class="border w-20 border-gray-800">
+                            {{ $loss[0] . '%' }}
+                        </td>
+                        @foreach ($project->xMonthsFromLaunch() as $year)
+                            <td class="border w-20 border-gray-800">
+                                {{ number_format($spu_values[$strength->name][$year], 2) }}
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        <hr>
+    </section>
+
+    <section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto"
+        x-data
+    >
+        <h2 class="text-2xl">COGS / Unit</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th class="border border-black">COGS / Unit</th>
+                    <th class="border border-black">Actuals</th>
+                    <th x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                        x-data="{editing:false}" class="border border-gray-800">
+                        <input x-cloak x-ref="input" wire:model="cogs.0"
+                            x-show="editing" type="text"/>
+                        <span x-show="!editing" x-cloak
+                            class="bg-yellow-100 w-full block"
+                            :class="{
+                                'bg-green-200': cogs[1] == cogs[0],
+                                'bg-red-200': cogs[1] != cogs[0]
+                            }"
+                        >
+                            {{ $cogs[0] . '%' }}
+                        </span>
+                    </th>
                     @foreach ($project->xMonthsFromLaunch() as $year)
                         <th class="border w-20 border-black">{{ date('Y', strtotime($year)) }}</th>
                     @endforeach
@@ -112,32 +209,40 @@
                 @foreach($project->marketMetric->strengths as $strength)
                     <tr>
                         <td class="border border-gray-800">{{ $strength->name }}</td>
-                        <td class="border border-gray-800">0%</td>
+                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                            x-data="{editing:false}" class="border border-gray-800">
+                            <input x-cloak x-ref="input" wire:model="spu_growth_matrix.{{ $strength->name }}.0"
+                                x-show="editing" type="text"/>
+                            <span x-show="!editing" x-cloak
+                                class="bg-yellow-100 w-full block"
+                                :class="{
+                                    'bg-green-200': spu_growth_matrix['{{ $strength->name }}'][1] == spu_growth_matrix['{{ $strength->name }}'][0],
+                                    'bg-red-200': spu_growth_matrix['{{ $strength->name }}'][1] != spu_growth_matrix['{{ $strength->name }}'][0]
+                                }"
+                            >
+                                {{ $spu_growth_matrix[$strength->name][0] }}
+                            </span>
+                        </td>
                         <td class="border w-20 border-gray-800">
                             {{
                                 number_format(
-                                $strength->get_sales($project->years->last()) /
-                                (($strength->get_market_volume($project->years->last()) ?? $strength->get_volume($project->years->last())) ?? 1)
+                                    $current_matrix[$strength->name]
                                 , 2)
                             }}
                         </td>
                         <td class="border w-20 border-gray-800">
                             {{  number_format (
-                                ($strength->get_sales($project->years->last()) /
-                                (($strength->get_market_volume($project->years->last()) ?? $strength->get_volume($project->years->last())) ?? 1))
-                                * (1 + (0000 / 100)) ** $project->xMonthsFromLaunch()->count()
+                                $current_matrix[$strength->name]
+                                * (1 + ($spu_growth_matrix[$strength->name][0] / 100)) ** $project->xMonthsFromLaunch()->count()
                                 , 2)
                             }}
                         </td>
-                        <td class="border w-20 border-gray-800">5%</td>
+                        <td class="border w-20 border-gray-800">
+                            {{ $loss[0] . '%' }}
+                        </td>
                         @foreach ($project->xMonthsFromLaunch() as $year)
                             <td class="border w-20 border-gray-800">
-                                {{  number_format (
-                                    ($strength->get_sales($project->years->last()) /
-                                    (($strength->get_market_volume($project->years->last()) ?? $strength->get_volume($project->years->last())) ?? 1))
-                                    * (1 + (0000 / 100)) ** $project->xMonthsFromLaunch()->count()
-                                    , 2)
-                                }}
+                                {{ number_format($spu_values[$strength->name][$year], 2) }}
                             </td>
                         @endforeach
                     </tr>

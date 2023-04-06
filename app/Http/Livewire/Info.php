@@ -14,6 +14,69 @@ class Info extends Component
 
     public $future_matrix;
 
+    public $spu_growth_matrix;
+
+    public $current_matrix;
+
+    public $loss;
+
+    public $spu_values;
+
+    public $cogs;
+
+    public function prepare_current_matrix()
+    {
+        $matrix = [];
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $last_sales = $strength->get_sales($this->project->years->last());
+            $last_volume = $strength->get_market_volume($this->project->years->last());
+            if ($last_volume == null) {
+                $last_volume = $strength->get_volume($this->project->years->last());
+            }
+            $matrix[$strength->name] = $last_sales / ($last_volume ?? 1);
+        }
+
+        return $matrix;
+    }
+
+    public function prepare_spu_values()
+    {
+        $comp_matrix = collect(config('comp_matrix'));
+        $spu_values = [];
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            foreach ($this->project->xMonthsFromLaunch() as $key => $year) {
+                $filtered = $comp_matrix->where('no_of_players', $this->extra_info[$year]['expected_competitors'][0]);
+                $bwac = $filtered->pluck('bwac')->first();
+
+                $loe = $this->current_matrix[$strength->name]
+                    * (1 + ($this->spu_growth_matrix[$strength->name][0] / 100)) ** $this->project->xMonthsFromLaunch()->count();
+                $bwac_of_loe = ($bwac / 100) * $loe;
+                if ($this->loss < 0) {
+                    $loop_val = $bwac_of_loe * (1 - ($this->loss[0] / 100) ** ($key + 1));
+                } else {
+                    $loop_val = $bwac_of_loe * (1 + ($this->loss[0] / 100) ** ($key + 1));
+                }
+                $spu_values[$strength->name][$year] = $loop_val;
+            }
+        }
+
+        return $spu_values;
+    }
+
+    public function prepare_spu_growth_matrix()
+    {
+        $matrix = [];
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            if ($strength->spuGrowth) {
+                $matrix[$strength->name] = [$strength->spuGrowth->growth, $strength->spuGrowth->growth];
+            } else {
+                $matrix[$strength->name] = [0, 0];
+            }
+        }
+
+        return $matrix;
+    }
+
     public function render()
     {
         return view('livewire.info');
@@ -21,10 +84,6 @@ class Info extends Component
 
     public function save()
     {
-        // if ($this->project_name[0] !== $this->project_name[1]) {
-        //     $this->project->update(['name' => $this->project_name[0]]);
-        //     $this->project_name[1] = $this->project_name[0];
-        // }
         foreach ($this->project->xMonthsFromLaunch() as $year) {
             $expected_competitors_changed = $this->extra_info[$year]['expected_competitors'][0] != $this->extra_info[$year]['expected_competitors'][1];
             $order_of_entry_changed = $this->extra_info[$year]['order_of_entry'][0] != $this->extra_info[$year]['order_of_entry'][1];
@@ -41,6 +100,28 @@ class Info extends Component
                 $this->extra_info[$year]['expected_competitors'][1] = $this->extra_info[$year]['expected_competitors'][0];
                 $this->extra_info[$year]['order_of_entry'][1] = $this->extra_info[$year]['order_of_entry'][0];
             }
+        }
+
+        // persist spu_growth_matrix
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $growth_changed = $this->spu_growth_matrix[$strength->name][0] != $this->spu_growth_matrix[$strength->name][1];
+            if ($growth_changed) {
+                $strength->spuGrowth()->updateOrCreate(
+                    ['strength_id' => $strength->id],
+                    ['growth' => $this->spu_growth_matrix[$strength->name][0]]
+                );
+                $this->spu_growth_matrix[$strength->name][1] = $this->spu_growth_matrix[$strength->name][0];
+            }
+        }
+
+        // persist loss
+        $loss_changed = $this->loss[0] != $this->loss[1];
+        if ($loss_changed) {
+            $this->project->lossPercent()->updateOrCreate(
+                ['project_id' => $this->project->id],
+                ['loss' => $this->loss[0]]
+            );
+            $this->loss[1] = $this->loss[0];
         }
     }
 
@@ -83,6 +164,16 @@ class Info extends Component
 
         $this->matrix = $matrix;
         $this->future_matrix = $this->prepare_future($this->project->marketMetric->strengths, $this->project->extra_years);
+        $this->spu_growth_matrix = $this->prepare_spu_growth_matrix();
+        $this->current_matrix = $this->prepare_current_matrix();
+
+        $loss = $this->project->lossPercent->loss ?? -5;
+        $this->loss = [$loss, $loss];
+
+        $cogs = $this->project->productMetric->cogs;
+        $this->cogs = [$cogs, $cogs];
+
+        $this->spu_values = $this->prepare_spu_values();
     }
 
     public function get_effective_market_share($year)

@@ -107,4 +107,9 @@ class Project extends Model
     {
         return $this->hasMany(ExtraInfo::class);
     }
+
+    public function lossPercent()
+    {
+        return $this->hasOne(LossPercent::class);
+    }
 }
