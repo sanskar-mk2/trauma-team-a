@@ -2,7 +2,6 @@
 
 namespace App\Http\Livewire;
 
-use Barryvdh\Debugbar\Facades\Debugbar;
 use Livewire\Component;
 
 class GrowthAssumption extends Component
@@ -17,7 +16,6 @@ class GrowthAssumption extends Component
 
     public function reevaluate()
     {
-        Debugbar::info('reevaluate');
         $this->reevaluate = ! $this->reevaluate;
     }
 
@@ -59,7 +57,6 @@ class GrowthAssumption extends Component
 
     public function calculate_perc($year, $strength, $reevaluate)
     {
-        Debugbar::info($reevaluate);
         $matrix = [];
         foreach ($this->project->marketMetric->strengths as $m_strength) {
             $matrix[$m_strength->name] = [];

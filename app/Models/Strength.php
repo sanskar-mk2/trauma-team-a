@@ -61,4 +61,9 @@ class Strength extends Model
     {
         return $this->hasOne(SpuGrowth::class);
     }
+
+    public function actualCog()
+    {
+        return $this->hasOne(ActualCog::class);
+    }
 }

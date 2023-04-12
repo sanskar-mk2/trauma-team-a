@@ -24,6 +24,61 @@ class Info extends Component
 
     public $cogs;
 
+    public $actuals;
+
+    public $operatings;
+
+    public function prepare_operatings()
+    {
+        $matrix = [];
+        foreach ($this->project->xMonthsFromLaunch() as $year) {
+            if ($this->project->operatings) {
+                $operating = $this->project->operatings->where('year', $year)->first();
+                if ($operating) {
+                    $matrix[$year] = [
+                        'development_cost' => [$operating->development_cost ?? 0, $operating->development_cost ?? 0],
+                        'litigation_cost' => [$operating->litigation_cost ?? 0, $operating->litigation_cost ?? 0],
+                        'other_cost' => [$operating->other_cost ?? 0, $operating->other_cost ?? 0],
+                    ];
+                } else {
+                    $matrix[$year] = [
+                        'development_cost' => [0, 0],
+                        'litigation_cost' => [0, 0],
+                        'other_cost' => [0, 0],
+                    ];
+                }
+            }
+        }
+
+        return $matrix;
+    }
+
+    public function get_operating_cost_by_year(string $year)
+    {
+        return collect($this->operatings[$year])->sum(function ($item) {
+            return $item[0];
+        });
+    }
+
+    public function get_operating_cost_by_type(string $type)
+    {
+        return collect($this->operatings)->map(function ($item) use ($type) {
+            return $item[$type][0];
+        })->sum();
+    }
+
+    public function get_operating_total()
+    {
+        $grandTotal = 0;
+        foreach ($this->operatings as $costs) {
+            foreach ($costs as $costValues) {
+                $grandTotal += $costValues[0];
+            }
+        }
+
+        return $grandTotal;
+    }
+
     public function prepare_current_matrix()
     {
         $matrix = [];
@@ -43,24 +98,39 @@ class Info extends Component
     {
         $comp_matrix = collect(config('comp_matrix'));
         $spu_values = [];
-        foreach ($this->project->marketMetric->strengths as $strength) {
-            foreach ($this->project->xMonthsFromLaunch() as $key => $year) {
-                $filtered = $comp_matrix->where('no_of_players', $this->extra_info[$year]['expected_competitors'][0]);
-                $bwac = $filtered->pluck('bwac')->first();
 
-                $loe = $this->current_matrix[$strength->name]
-                    * (1 + ($this->spu_growth_matrix[$strength->name][0] / 100)) ** $this->project->xMonthsFromLaunch()->count();
-                $bwac_of_loe = ($bwac / 100) * $loe;
-                if ($this->loss < 0) {
-                    $loop_val = $bwac_of_loe * (1 - ($this->loss[0] / 100) ** ($key + 1));
+        $years = $this->project->xMonthsFromLaunch();
+        $first_year = $years->first();
+        $filtered = $comp_matrix->where('no_of_players', $this->extra_info[$first_year]['expected_competitors'][0]);
+        $bwac = $filtered->pluck('bwac')->first();
+
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $loe = $this->current_matrix[$strength->name]
+                * (1 + ($this->spu_growth_matrix[$strength->name][0] / 100)) ** $years->count();
+            $bwac_of_loe = ($bwac / 100) * $loe;
+            foreach ($years as $key => $year) {
+                if ($key == 0) {
+                    $loop_val = $bwac_of_loe;
                 } else {
-                    $loop_val = $bwac_of_loe * (1 + ($this->loss[0] / 100) ** ($key + 1));
+                    $last_year = $years[$key - 1];
+                    $loop_val = $spu_values[$strength->name][$last_year] * (1 + ($this->loss[0] / 100));
                 }
                 $spu_values[$strength->name][$year] = $loop_val;
             }
         }
 
         return $spu_values;
+    }
+
+    public function prepare_actuals()
+    {
+        $matrix = [];
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $actuals = $strength->actualCog->cost ?? 0;
+            $matrix[$strength->name] = [$actuals, $actuals];
+        }
+
+        return $matrix;
     }
 
     public function prepare_spu_growth_matrix()
@@ -123,6 +193,164 @@ class Info extends Component
             );
             $this->loss[1] = $this->loss[0];
         }
+
+        // persist cogs
+        $cogs_changed = $this->cogs[0] != $this->cogs[1];
+        if ($cogs_changed) {
+            $this->project->productMetric()->update([
+                'cogs' => $this->cogs[0],
+            ]);
+            $this->cogs[1] = $this->cogs[0];
+        }
+
+        // persist actuals
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $actuals_changed = $this->actuals[$strength->name][0] != $this->actuals[$strength->name][1];
+            if ($actuals_changed) {
+                $strength->actualCog()->updateOrCreate(
+                    ['strength_id' => $strength->id],
+                    ['cost' => $this->actuals[$strength->name][0]]
+                );
+                $this->actuals[$strength->name][1] = $this->actuals[$strength->name][0];
+            }
+        }
+
+        // persist operatings
+        foreach ($this->project->xMonthsFromLaunch() as $year) {
+            $development_cost_changed = $this->operatings[$year]['development_cost'][0] != $this->operatings[$year]['development_cost'][1];
+            $litigation_cost_changed = $this->operatings[$year]['litigation_cost'][0] != $this->operatings[$year]['litigation_cost'][1];
+            $other_cost_changed = $this->operatings[$year]['other_cost'][0] != $this->operatings[$year]['other_cost'][1];
+
+            if ($development_cost_changed || $litigation_cost_changed || $other_cost_changed) {
+                $this->project->operatings()->updateOrCreate(
+                    ['year' => $year],
+                    [
+                        'development_cost' => $this->operatings[$year]['development_cost'][0],
+                        'litigation_cost' => $this->operatings[$year]['litigation_cost'][0],
+                        'other_cost' => $this->operatings[$year]['other_cost'][0],
+                    ]
+                );
+
+                $this->operatings[$year]['development_cost'][1] = $this->operatings[$year]['development_cost'][0];
+                $this->operatings[$year]['litigation_cost'][1] = $this->operatings[$year]['litigation_cost'][0];
+                $this->operatings[$year]['other_cost'][1] = $this->operatings[$year]['other_cost'][0];
+            }
+        }
+    }
+
+    public function calculate_cogs_units($strength, $year)
+    {
+        if ($this->actuals[$strength][0] !== 0) {
+            return $this->actuals[$strength][0];
+        } else {
+            return $this->spu_values[$strength][$year] * ($this->cogs[0] / 100);
+        }
+    }
+
+    public function calculate_mol_pnl($strength, $year)
+    {
+        $vol = $this->calculate_vol($year, $strength);
+        $spu = $this->spu_values[$strength][$year];
+        $mol_pnl = $vol * $spu;
+
+        return $mol_pnl;
+    }
+
+    public function calculate_cogs($strength, $year)
+    {
+        $vol = $this->calculate_vol($year, $strength);
+        $cogs = $this->calculate_cogs_units($strength, $year);
+        $cogs_total = $vol * $cogs;
+
+        return $cogs_total;
+    }
+
+    public function total_mol_pnl_by_strength($strength)
+    {
+        $total = 0;
+        foreach ($this->project->xMonthsFromLaunch() as $year) {
+            $total += $this->calculate_mol_pnl($strength, $year);
+        }
+
+        return $total;
+    }
+
+    public function total_mol_pnl_by_year($year)
+    {
+        $total = 0;
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $total += $this->calculate_mol_pnl($strength->name, $year);
+        }
+
+        return $total;
+    }
+
+    public function total_mol_pnl()
+    {
+        $total = 0;
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $total += $this->total_mol_pnl_by_strength($strength->name);
+        }
+
+        return $total;
+    }
+
+    public function total_cogs_by_strength($strength)
+    {
+        $total = 0;
+        foreach ($this->project->xMonthsFromLaunch() as $year) {
+            $total += $this->calculate_cogs($strength, $year);
+        }
+
+        return $total;
+    }
+
+    public function total_cogs_by_year($year)
+    {
+        $total = 0;
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $total += $this->calculate_cogs($strength->name, $year);
+        }
+
+        return $total;
+    }
+
+    public function total_cogs()
+    {
+        $total = 0;
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $total += $this->total_cogs_by_strength($strength->name);
+        }
+
+        return $total;
+    }
+
+    public function gross_profit_by_year($year)
+    {
+        return $this->total_mol_pnl_by_year($year) - $this->total_cogs_by_year($year);
+    }
+
+    public function gross_profit_percent_by_year($year)
+    {
+        if ($this->total_mol_pnl_by_year($year) == 0) {
+            return 0;
+        }
+
+        return ($this->gross_profit_by_year($year) / $this->total_mol_pnl_by_year($year)) * 100;
+    }
+
+    public function gross_profit_total()
+    {
+        return $this->total_mol_pnl() - $this->total_cogs();
+    }
+
+    public function gross_profit_percent_total()
+    {
+        if ($this->total_mol_pnl() == 0) {
+            return 0;
+        }
+
+        return ($this->gross_profit_total() / $this->total_mol_pnl()) * 100;
     }
 
     public function prepare_future($strengths, $years)
@@ -174,6 +402,10 @@ class Info extends Component
         $this->cogs = [$cogs, $cogs];
 
         $this->spu_values = $this->prepare_spu_values();
+
+        $this->actuals = $this->prepare_actuals();
+
+        $this->operatings = $this->prepare_operatings();
     }
 
     public function get_effective_market_share($year)

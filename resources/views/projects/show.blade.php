@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.main')
 
-@section('content')
+@section('main')
 
     <style>
         input {
