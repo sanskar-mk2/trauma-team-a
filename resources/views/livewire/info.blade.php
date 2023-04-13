@@ -1,5 +1,189 @@
-<div>
-    <section x-data="{extra_info: @entangle('extra_info')}"
+<div class="p-8" x-data="{ future_matrix: @entangle('future_matrix'), matrix: @entangle('matrix'), extra_info: @entangle('extra_info') }">
+    <section class="lock-div">
+        <table>
+            <thead>
+                <th>Years</th>
+                @foreach ($project->years as $year)
+                    <th>{{ date('Y', strtotime($year)) }}</th>
+                @endforeach
+                @foreach ($project->extra_years as $year)
+                    @if (date('Y', strtotime($year)) == date('Y', strtotime($project->productMetric->launch_date)))
+                        <th>{{ date('Y', strtotime($year)) }}</th>
+                    @else
+                        <th>{{ date('Y', strtotime($year)) }}</th>
+                    @endif
+                @endforeach
+            </thead>
+            <tbody>
+                <tr>
+                    <th>
+                        {{ __('Growth Assumptions') }}
+                    </th>
+                    <td colspan="{{ $project->years->count() + $project->extra_years->count() }}"></td>
+                </tr>
+                @foreach ($project->marketMetric->strengths as $strength)
+                    <tr>
+                        <th>{{ $strength->name }}</th>
+                        @foreach ($project->years as $year)
+                            <td>
+                                {{ $this->calculate_perc($year, $strength->name, $reevaluate) }}
+                            </td>
+                        @endforeach
+                        @foreach ($project->extra_years as $year)
+                            <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                                x-data="{editing:false}">
+                                <input x-cloak x-ref="input" wire:model="future_matrix.{{ $strength->name }}.{{ $year }}.0" x-show="editing" class="w-full" type="text"
+                                    />
+                                <span x-show="!editing" x-cloak
+                                    class="bg-yellow-100 w-full block"
+                                    :class="{
+                                        'bg-green-200': future_matrix['{{ $strength->name }}']['{{ $year }}'][2] && future_matrix['{{ $strength->name }}']['{{ $year }}'][1] == future_matrix['{{ $strength->name }}']['{{ $year }}'][0],
+                                        'bg-red-200': future_matrix['{{ $strength->name }}']['{{ $year }}'][1] != future_matrix['{{ $strength->name }}']['{{ $year }}'][0]
+                                    }"
+                                    >
+                                    {{ $future_matrix[$strength->name][$year][0] }}%
+                                </span>
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+
+                <tr>
+                    <th>
+                        {{ __('Market Volumes') }}
+                    </th>
+                    <td colspan="{{ $project->years->count() + $project->extra_years->count() }}"></td>
+                </tr>
+                @foreach ($project->marketMetric->strengths as $strength)
+                    <tr>
+                        <th>{{ $strength->name }}</td>
+                        @foreach ($project->years as $year)
+                            <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                                x-data="{editing:false}">
+                                <input x-cloak x-ref="input" wire:model="matrix.{{ $strength->name }}.{{ $year }}.0" x-show="editing" class="w-full" type="text"
+                                    />
+                                <span x-show="!editing" x-cloak
+                                    class="bg-yellow-100 w-full block"
+                                    :class="{
+                                        'bg-green-200': matrix['{{ $strength->name }}']['{{ $year }}'][2] && matrix['{{ $strength->name }}']['{{ $year }}'][1] == matrix['{{ $strength->name }}']['{{ $year }}'][0],
+                                        'bg-red-200': matrix['{{ $strength->name }}']['{{ $year }}'][1] != matrix['{{ $strength->name }}']['{{ $year }}'][0]
+                                    }"
+                                    >
+                                    {{ number_format($matrix[$strength->name][$year][0] / 1.0e+6, 2) . 'M' }}
+                                </span>
+                            </td>
+                        @endforeach
+                        @foreach ($project->extra_years as $year)
+                            <td>
+                                <span>
+                                    {{ number_format($this->calculate_vol($year, $strength->name, $reevaluate) / 1e+6, 2) . 'M' }}
+                                </span>
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+
+                <tr>
+                    <th>
+                        {{ __('Market Sales') }}
+                    </th>
+                    <td colspan="{{ $project->years->count() + $project->extra_years->count() }}"></td>
+                </tr>
+                @foreach ($project->marketMetric->strengths as $strength)
+                    <tr>
+                        <th>{{ $strength->name }}</td>
+                        @foreach ($project->years as $year)
+                            <td>{{ number_format($strength->get_sales($year) / 1e+6, 2) . 'M' }}</td>
+                        @endforeach
+                        @foreach ($project->extra_years as $year)
+                            <td class="text-center">-</td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        <hr class="my-4">
+    </section>
+
+    <section class="lock-div mt-8">
+        <table>
+            <thead>
+                <tr>
+                    <th>Strengths</th>
+                    <th>Total</th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <th>{{ date('Y', strtotime($year)) }}</th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th class="whitespace-nowrap">
+                        {{ __('Molecule P/L') }}
+                    </th>
+                    <td colspan="{{ $project->years->count() + $project->extra_years->count() }}"></td>
+                </tr>
+                @foreach($project->marketMetric->strengths as $strength)
+                    <tr>
+                        <th class="whitespace-nowrap">{{ $strength->name }}</th>
+                        <td>
+                            {{ number_format($this->total_mol_pnl_by_strength($strength->name) / 1e+6, 2) . 'M' }}
+                        </td>
+                        @foreach ($project->xMonthsFromLaunch() as $year)
+                            <td>
+                                {{ number_format($this->calculate_mol_pnl($strength->name, $year) / 1e+6, 2) . 'M' }}
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+                <tr>
+                    <th>Total</th>
+                    <td>
+                        {{ number_format($this->total_mol_pnl() / 1e+6, 2) . 'M' }}
+                    </td>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            {{ number_format($this->total_mol_pnl_by_year($year) / 1e+6, 2) . 'M' }}
+                        </td>
+                    @endforeach
+                </tr>
+
+                <tr>
+                    <th class="whitespace-nowrap">
+                        {{ __('COGS') }}
+                    </th>
+                    <td colspan="{{ $project->years->count() + $project->extra_years->count() }}"></td>
+                </tr>
+                @foreach($project->marketMetric->strengths as $strength)
+                    <tr>
+                        <th class="whitespace-nowrap">{{ $strength->name }}</th>
+                        <td>
+                            {{ number_format($this->total_cogs_by_strength($strength->name) / 1e+6, 2) . 'M' }}
+                        </td>
+                        @foreach ($project->xMonthsFromLaunch() as $year)
+                            <td>
+                                {{ number_format($this->calculate_cogs($strength->name, $year) / 1e+6, 2) . 'M' }}
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+                <tr>
+                    <th>Total</th>
+                    <td>
+                        {{ number_format($this->total_cogs() / 1e+6, 2) . 'M' }}
+                    </td>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            {{ number_format($this->total_cogs_by_year($year) / 1e+6, 2) . 'M' }}
+                        </td>
+                    @endforeach
+                </tr>
+            </tbody>
+        </table>
+        <hr class="my-4">
+    </section>
+
+    <section
         class="bg-blue-100 p-4 rounded m-4 overflow-x-auto">
         <h2 class="text-2xl flex items-center">
             INFO
@@ -237,92 +421,7 @@
         </table>
         <hr>
     </section>
-    <section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto"
-        x-data
-    >
-        <h2 class="text-2xl">Molecule P/L</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th class="border border-black">Molecule P/L</th>
-                    <th class="border border-black">Total</th>
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <th class="border w-20 border-black">{{ date('Y', strtotime($year)) }}</th>
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($project->marketMetric->strengths as $strength)
-                    <tr>
-                        <td class="border border-gray-800">{{ $strength->name }}</td>
-                        <td class="border w-20 border-gray-800">
-                            {{ number_format($this->total_mol_pnl_by_strength($strength->name) / 1e+6, 2) . 'M' }}
-                        </td>
-                        @foreach ($project->xMonthsFromLaunch() as $year)
-                            <td class="border w-20 border-gray-800">
-                                {{ number_format($this->calculate_mol_pnl($strength->name, $year) / 1e+6, 2) . 'M' }}
-                            </td>
-                        @endforeach
-                    </tr>
-                @endforeach
-                <tr>
-                    <td class="border border-gray-800">Total</td>
-                    <td class="border w-20 border-gray-800">
-                        {{ number_format($this->total_mol_pnl() / 1e+6, 2) . 'M' }}
-                    </td>
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td class="border w-20 border-gray-800">
-                            {{ number_format($this->total_mol_pnl_by_year($year) / 1e+6, 2) . 'M' }}
-                        </td>
-                    @endforeach
-                </tr>
-            </tbody>
-        </table>
-        <hr>
-    </section>
-    <section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto"
-        x-data
-    >
-        <h2 class="text-2xl">Cogs</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th class="border border-black">Cogs</th>
-                    <th class="border border-black">Total</th>
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <th class="border w-20 border-black">{{ date('Y', strtotime($year)) }}</th>
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($project->marketMetric->strengths as $strength)
-                    <tr>
-                        <td class="border border-gray-800">{{ $strength->name }}</td>
-                        <td class="border w-20 border-gray-800">
-                            {{ number_format($this->total_cogs_by_strength($strength->name) / 1e+6, 2) . 'M' }}
-                        </td>
-                        @foreach ($project->xMonthsFromLaunch() as $year)
-                            <td class="border w-20 border-gray-800">
-                                {{ number_format($this->calculate_cogs($strength->name, $year) / 1e+6, 2) . 'M' }}
-                            </td>
-                        @endforeach
-                    </tr>
-                @endforeach
-                <tr>
-                    <td class="border border-gray-800">Total</td>
-                    <td class="border w-20 border-gray-800">
-                        {{ number_format($this->total_cogs() / 1e+6, 2) . 'M' }}
-                    </td>
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td class="border w-20 border-gray-800">
-                            {{ number_format($this->total_cogs_by_year($year) / 1e+6, 2) . 'M' }}
-                        </td>
-                    @endforeach
-                </tr>
-            </tbody>
-        </table>
-        <hr>
-    </section>
+
     <section class="bg-blue-100 p-4 rounded m-4 overflow-x-auto"
         x-data
     >

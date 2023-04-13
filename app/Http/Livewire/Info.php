@@ -28,6 +28,8 @@ class Info extends Component
 
     public $operatings;
 
+    public $reevaluate = false;
+
     public function prepare_operatings()
     {
         $matrix = [];
@@ -236,6 +238,42 @@ class Info extends Component
                 $this->operatings[$year]['other_cost'][1] = $this->operatings[$year]['other_cost'][0];
             }
         }
+
+        // growth assumption
+        foreach ($this->future_matrix as $strength => $years) {
+            foreach ($years as $year => $values) {
+                if ((int) $values[0] !== $values[1]) {
+                    $m_strength = $this->project->marketMetric->strengths->where('name', $strength)->first();
+                    $growth_assumption = $m_strength->growthAssumptions->where('year', $year);
+                    if ($growth_assumption->count() > 0) {
+                        $growth_assumption->first()->update(['change' => $values[0]]);
+                    } else {
+                        $m_strength->growthAssumptions()->create(['year' => $year, 'change' => $values[0]]);
+                    }
+                    $this->future_matrix[$strength][$year][1] = $values[0];
+                    $this->future_matrix[$strength][$year][2] = 1;
+                }
+            }
+        }
+
+        // volume
+        foreach ($this->matrix as $strength => $years) {
+            foreach ($years as $year => $values) {
+                if ((int) $values[0] !== $values[1]) {
+                    $m_strength = $this->project->marketMetric->strengths->where('name', $strength)->first();
+                    $market_volume = $m_strength->marketVolumes->where('year', $year);
+                    if ($market_volume->count() > 0) {
+                        $market_volume->first()->update(['volume' => $values[0]]);
+                    } else {
+                        $m_strength->marketVolumes()->create(['year' => $year, 'volume' => $values[0]]);
+                    }
+                    $this->matrix[$strength][$year][1] = $values[0];
+                    $this->matrix[$strength][$year][2] = 1;
+                }
+            }
+        }
+
+        $this->reevaluate = !$this->reevaluate;
     }
 
     public function calculate_cogs_units($strength, $year)
@@ -249,7 +287,7 @@ class Info extends Component
 
     public function calculate_mol_pnl($strength, $year)
     {
-        $vol = $this->calculate_vol($year, $strength);
+        $vol = $this->calculate_vol($year, $strength, false);
         $spu = $this->spu_values[$strength][$year];
         $mol_pnl = $vol * $spu;
 
@@ -258,7 +296,7 @@ class Info extends Component
 
     public function calculate_cogs($strength, $year)
     {
-        $vol = $this->calculate_vol($year, $strength);
+        $vol = $this->calculate_vol($year, $strength, false);
         $cogs = $this->calculate_cogs_units($strength, $year);
         $cogs_total = $vol * $cogs;
 
@@ -370,6 +408,36 @@ class Info extends Component
         return $matrix;
     }
 
+    public function calculate_perc($year, $strength, $reevaluate)
+    {
+        $matrix = [];
+        foreach ($this->project->marketMetric->strengths as $m_strength) {
+            $matrix[$m_strength->name] = [];
+            foreach ($this->project->years as $m_year) {
+                if ($m_strength->get_market_volume($m_year) != null) {
+                    $matrix[$m_strength->name][$m_year] = $m_strength->get_market_volume($m_year);
+                } else {
+                    $matrix[$m_strength->name][$m_year] = $m_strength->get_volume($m_year);
+                }
+            }
+        }
+
+        $this_year = \Carbon\Carbon::parse($year);
+        $prev_year = $this_year->subYear();
+
+        if (! $this->project->years->contains($prev_year->format('Y-m-d'))) {
+            return '—';
+        } else {
+            $this_vol = $matrix[$strength][$year];
+            $prev_vol = $matrix[$strength][$prev_year->format('Y-m-d')];
+            if ($prev_vol == 0) {
+                return '—';
+            }
+
+            return intval((($this_vol - $prev_vol) / $prev_vol) * 100).'%';
+        }
+    }
+
     public function mount()
     {
         $this->extra_info = $this->get_extra_info(
@@ -419,12 +487,12 @@ class Info extends Component
     public function get_market_size($strength, $year)
     {
         $effective_market_share = $this->get_effective_market_share($year) / 100;
-        $vol = $this->calculate_vol($year, $strength);
+        $vol = $this->calculate_vol($year, $strength, false);
 
         return number_format($effective_market_share * $vol / 1e+6, 2).' M';
     }
 
-    public function calculate_vol($year, $strength)
+    public function calculate_vol($year, $strength, $reevaluate)
     {
         $to_get = \Carbon\Carbon::parse($year);
         $starting = \Carbon\Carbon::parse($this->project->extra_years[0]);

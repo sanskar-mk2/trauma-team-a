@@ -18,7 +18,7 @@
                     </ul>
                 </div>
             </aside>
-            <div class="flex flex-col w-full">
+            <div class="flex flex-col">
                 @yield('main')
             </div>
         </section>
