@@ -37,7 +37,6 @@
     position: -webkit-sticky;
     text-align: start;
     padding-left: 1em;
-    border: 1px solid #ccc;
     /* for Safari */
     position: sticky;
     left: 0;
@@ -56,7 +55,7 @@
 
 .lock-div thead th {
     @apply bg-blue-500;
-    border: #fff 1px solid;
+    border-top: none;
     color: #FFF;
     padding: 0em 2em;
     /* Ensure this stays above the emulated border right in tbody th {}: */
@@ -65,27 +64,26 @@
 
 
 .lock-div tbody th {
-    @apply whitespace-nowrap;
-    background: #FFF;
+    @apply whitespace-nowrap bg-blue-100;
     z-index: 2;
-    border-right: 1px solid #CCC;
-    /* Browsers tend to drop borders on sticky elements, so we emulate the border-right using a box-shadow to ensure it stays: */
-    box-shadow: 1px 0 0 0 #ccc;
 }
 
 .lock-div table {
-    border-collapse: collapse;
+    border-collapse: separate;
+    border: solid black 1px;
+    border-radius: 6px;
 }
 
 .lock-div td,
 .lock-div th {
     padding: 0;
+    border-left: solid black 1px;
+    border-top: solid black 1px;
 }
 
 .lock-div td {
     position: relative;
     width: 5em;
-    border: 1px solid #ccc;
 }
 
 .lock-div td textarea {
@@ -94,4 +92,8 @@
     left: 0;
     width: 100%;
     height: 100%;
+}
+
+.lock-div td:first-child, .lock-div th:first-child {
+    border-left: none;
 }

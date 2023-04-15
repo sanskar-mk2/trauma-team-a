@@ -8,7 +8,7 @@
                 @endforeach
                 @foreach ($project->extra_years as $year)
                     @if (date('Y', strtotime($year)) == date('Y', strtotime($project->productMetric->launch_date)))
-                        <th>{{ date('Y', strtotime($year)) }}</th>
+                        <th style="background-color:rgb(233 213 255);color:#222">{{ date('Y', strtotime($year)) }}</th>
                     @else
                         <th>{{ date('Y', strtotime($year)) }}</th>
                     @endif
@@ -102,7 +102,6 @@
                 @endforeach
             </tbody>
         </table>
-        <hr class="my-4">
     </section>
 
     <section class="lock-div mt-8">
