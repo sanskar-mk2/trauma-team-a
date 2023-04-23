@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Barryvdh\Debugbar\Facades\Debugbar;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -116,5 +117,15 @@ class Project extends Model
     public function operatings()
     {
         return $this->hasMany(Operating::class);
+    }
+
+    public function yearsTillLaunch()
+    {
+        $launch = Carbon::create($this->productMetric->launch_date);
+        $first_year = $this->years->first();
+
+        $years = CarbonPeriod::create($first_year, '1 year', $launch->subYear())->excludeEndDate();
+        Debugbar::info($years->toArray());
+        return $years;
     }
 }

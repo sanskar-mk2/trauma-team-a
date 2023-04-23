@@ -90,7 +90,10 @@ class Info extends Component
             if ($last_volume == null) {
                 $last_volume = $strength->get_volume($this->project->years->last());
             }
-            $matrix[$strength->name] = $last_sales / ($last_volume ?? 1);
+            if ($last_volume == 0) {
+                $last_volume = 1;
+            }
+            $matrix[$strength->name] = $last_sales / $last_volume;
         }
 
         return $matrix;

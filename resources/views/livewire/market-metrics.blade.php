@@ -1,5 +1,5 @@
-<div x-data="{ valid_molecule: @entangle('valid_molecule'), product_metric_vali: @entangle('product_metric_vali'), evaluate_by: @entangle('evaluate_by'), step: @entangle('step'), selected_form: @entangle('selected_form'), project_id: @entangle('project_id') }">
-    <form class="flex flex-col gap-4">
+<div class="w-full" x-data="{ valid_molecule: @entangle('valid_molecule'), product_metric_vali: @entangle('product_metric_vali'), evaluate_by: @entangle('evaluate_by'), step: @entangle('step'), selected_form: @entangle('selected_form'), project_id: @entangle('project_id') }">
+    <form class="flex w-full flex-col gap-4">
         <section class="flex gap-2 mt-4 flex-col">
             {{-- <h3 class="text-xl font-bold underline">
                 Market Metrics: Step {{ $step + 1 }}
