@@ -54,6 +54,11 @@
                 <div class="flex flex-col mb-2">
                     <label x-show="step>=this_step">Select Strength</label>
                     <div x-show="step===this_step" class="flex flex-wrap h-fit max-h-48 bg-gray-100 rounded overflow-y-auto">
+                        <button x-show="step===this_step" type="button"
+                            @click="local_selected = strengths.map((strength) => strength.replace(' ', '-'))"
+                            class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                            Select All
+                        </button>
                         <template x-for="strength in strengths" :key="strength.replace(' ', '-')" >
                             <label class="bg-gray-200 p-2 m-2 rounded cursor-pointer" 
                                 :for="strength.replace(' ', '-')">

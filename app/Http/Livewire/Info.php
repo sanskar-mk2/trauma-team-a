@@ -28,6 +28,8 @@ class Info extends Component
 
     public $operatings;
 
+    public $by = 'm';
+
     public $reevaluate = false;
 
     public function prepare_operatings()
@@ -276,7 +278,7 @@ class Info extends Component
             }
         }
 
-        $this->reevaluate = !$this->reevaluate;
+        $this->reevaluate = ! $this->reevaluate;
     }
 
     public function calculate_cogs_units($strength, $year)
@@ -492,7 +494,13 @@ class Info extends Component
         $effective_market_share = $this->get_effective_market_share($year) / 100;
         $vol = $this->calculate_vol($year, $strength, false);
 
-        return number_format($effective_market_share * $vol / 1e+6, 2).' M';
+        if ($this->by == 'm') {
+            return number_format($effective_market_share * $vol / 1e+6, 2).' M';
+        } elseif ($this->by == 't') {
+            return number_format($effective_market_share * $vol / 1e+3, 2).' K';
+        } else {
+            return number_format($effective_market_share * $vol, 2);
+        }
     }
 
     public function calculate_vol($year, $strength, $reevaluate)

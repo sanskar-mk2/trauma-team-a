@@ -8,3 +8,5 @@ IN info, start after launch date
 
 CHANGE MOLECULE P/L to SALES
 TOTALS SHADING
+
+ALL STRENGHTX

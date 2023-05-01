@@ -1,4 +1,4 @@
-<div class="w-full">
+<div class="max-w-7xl">
     <section x-data="{project_name: @entangle('project_name')}" class="px-4 rounded mx-4 mt-4 overflow-x-auto flex justify-between">
         <div>
             <h1 class="font-bold text-xl">{{ $project->id }}. 
