@@ -8,7 +8,7 @@
         <span>Unsaved Value, Editable</span>
     </div>
     <div class="flex items-center gap-2">
-        <div class="inline-block bg-green-200 w-4 h-4"></div>
+        <div class="inline-block bg-gray-200 w-4 h-4"></div>
         <span>Custom Value, Editable</span>
     </div>
     <div class="flex items-center gap-2">

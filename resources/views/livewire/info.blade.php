@@ -1,29 +1,29 @@
-<div class="p-8" x-data="{ future_matrix: @entangle('future_matrix'), matrix: @entangle('matrix'), extra_info: @entangle('extra_info'), operatings: @entangle('operatings'), spu_growth_matrix: @entangle('spu_growth_matrix'), loss: @entangle('loss'), cogs: @entangle('cogs'), actuals: @entangle('actuals')}" >
-    <section class="lock-div" x-data="{by: @entangle('by')}">
-        <div class="flex items-center">
-            <label for="by" class="mx-2 font-medium text-gray-700">By</label>
-            <select name="by" id="by" wire:model="by" class="mx-2 rounded-md bg-gray-100 text-gray-700 py-2 px-4">
-                <option value="m">Millions</option>
-                <option value="t">Thousands</option>
-                <option value="a">Absolutes</option>
-            </select>
-        </div>
+<div class="p-8 max-w-6xl flex flex-col gap-2" x-data="{ by: @entangle('by'), future_matrix: @entangle('future_matrix'), matrix: @entangle('matrix'), extra_info: @entangle('extra_info'), operatings: @entangle('operatings'), spu_growth_matrix: @entangle('spu_growth_matrix'), loss: @entangle('loss'), cogs: @entangle('cogs'), actuals: @entangle('actuals')}" >
+    <div class="flex items-center">
+        <label for="by" class="mx-2 font-medium text-gray-700">By</label>
+        <select name="by" id="by" wire:model="by" class="mx-2 rounded-md bg-gray-100 text-gray-700 py-2 px-4">
+            <option value="m">Millions</option>
+            <option value="t">Thousands</option>
+            <option value="a">Absolutes</option>
+        </select>
+    </div>
+    <section class="lock-div">
+        <h2 class="text-lg font-bold">Market Dynamics</h2>
         <table x-data="{
-            master_display: false, pl_display: false, cogs_display: false, ga_display: false, mv_display: false, ms_display: false, oc_display: false, gp_display: true, info_display: false, su_display: false, cu_display: false,
-            get pre_display() {return this.master_display || this.ga_display || this.mv_display || this.ms_display;},
-        }"
+            master_display: false, ga_display: false, mv_display: false, ms_display: false,
+        }" class="text-sm text-right"
         >
             <thead>
-                <th style="padding-right:0; padding-left:1em;" class="whitespace-nowrap flex justify-between">
+                <th style="padding-right:0; padding-left:1em;" class="whitespace-nowrap flex justify-between items-center">
                     Years
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
-                        @click="if (!master_display) { master_display = true; pl_display = true; cogs_display = true; ga_display = true; mv_display = true; ms_display = true; oc_display = true; gp_display = true; info_display = true; su_display = true; cu_display = true; } else { master_display = false; pl_display = false; cogs_display = false; ga_display = false; mv_display = false; ms_display = false; oc_display = false; gp_display = false; info_display = false; su_display = false; cu_display = false; }"
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                        @click="if (!master_display) { master_display = true; ga_display = true; mv_display = true; ms_display = true; } else { master_display = false; ga_display = false; mv_display = false; ms_display = false; }"
                         :class="{'rotate-180': master_display}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </th>
                 @foreach ($project->yearsTillLaunch() as $year)
-                    <th x-cloak x-init="console.log(pre_display)" x-show="pre_display">{{ date('Y', strtotime($year)) }}</th>
+                    <th x-cloak>{{ date('Y', strtotime($year)) }}</th>
                 @endforeach
                 @foreach ($project->xMonthsFromLaunch() as $year)
                     @if (date('Y', strtotime($year)) == date('Y', strtotime($project->productMetric->launch_date)))
@@ -32,492 +32,12 @@
                         <th>{{ date('Y', strtotime($year)) }}</th>
                     @endif
                 @endforeach
-                <th>Total</th>
             </thead>
             <tbody>
-                <th class="whitespace-nowrap flex justify-between">
-                    {{ __('Info') }}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
-                        :class="{'rotate-180': info_display}" @click="info_display = !info_display">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                    <td colspan="{{ $project->years->count() + $project->extra_years->count() + 1 }}"></td>
-                </th>
-
-                <tr x-cloak x-show="info_display"
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-500"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Sales Months</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td>
-                            {{ $extra_info[$year]['sales_months'] }}
-                        </td>
-                    @endforeach
-                </tr>
-                <tr x-cloak x-show="info_display"
-                    x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-400"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Expected Competitors</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
-                            x-data="{editing:false}">
-                            <input x-cloak x-ref="input" wire:model="extra_info.{{ $year }}.expected_competitors.0"
-                                x-show="editing" class="w-full" type="text"/>
-                            <span x-show="!editing" x-cloak
-                                class="bg-yellow-100 w-full block"
-                                :class="{
-                                    'bg-green-200': extra_info['{{ $year }}']['expected_competitors'][1] == extra_info['{{ $year }}']['expected_competitors'][0],
-                                    'bg-red-200': extra_info['{{ $year }}']['expected_competitors'][1] != extra_info['{{ $year }}']['expected_competitors'][0]
-                                }"
-                            >
-                                {{ $extra_info[$year]['expected_competitors'][0] }}
-                            </span>
-                        </td>
-                    @endforeach
-                </tr>
-                <tr x-cloak x-show="info_display"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-300"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Order of Entry</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
-                            x-data="{editing:false}">
-                            <input x-cloak x-ref="input" wire:model="extra_info.{{ $year }}.order_of_entry.0"
-                                x-show="editing" class="w-full" type="text"/>
-                            <span x-show="!editing" x-cloak
-                                class="bg-yellow-100 w-full block"
-                                :class="{
-                                    'bg-green-200': extra_info['{{ $year }}']['order_of_entry'][1] == extra_info['{{ $year }}']['order_of_entry'][0],
-                                    'bg-red-200': extra_info['{{ $year }}']['order_of_entry'][1] != extra_info['{{ $year }}']['order_of_entry'][0]
-                                }"
-                            >
-                                {{ $extra_info[$year]['order_of_entry'][0] }}
-                            </span>
-                        </td>
-                    @endforeach
-                </tr>
-                <tr x-cloak x-show="info_display"
-                    x-transition:enter="transition ease-out duration-400"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Market Share</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td>
-                            {{ $this->get_market_share($year) . '%' }}
-                        </td>
-                    @endforeach
-                </tr>
-                <tr x-cloak x-show="info_display"
-                    x-transition:enter="transition ease-out duration-500"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-50"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Effective Market Share</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td>
-                            {{ $this->get_effective_market_share($year) . '%' }}
-                        </td>
-                    @endforeach
-                </tr>
-                @foreach($project->marketMetric->strengths as $strength)
-                    <tr x-cloak x-show="info_display"
-                        x-transition:enter="transition ease-out duration-600"
-                        x-transition:enter-start="opacity-0 transform scale-90"
-                        x-transition:enter-end="opacity-100 transform scale-100"
-                        x-transition:leave="transition ease-in duration-0"
-                        x-transition:leave-start="opacity-100 transform scale-100"
-                        x-transition:leave-end="opacity-0 transform scale-90"
-                    >
-                        <th>{{ $strength->name }}</th>
-                        @foreach ($project->yearsTillLaunch() as $year)
-                            <td x-cloak x-show="pre_display" class="text-center">-</td>
-                        @endforeach
-                        @foreach ($project->xMonthsFromLaunch() as $year)
-                            <td>
-                                {{ $this->get_market_size($strength->name, $year) }}
-                            </td>
-                        @endforeach
-                    </tr>
-                @endforeach
-
-                <x-seperator />
-
                 <tr class="bg-green-300">
-                    <th class="whitespace-nowrap flex justify-between">
-                        {{ __('Molecule P/L') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
-                            :class="{'rotate-180': pl_display}" @click="pl_display = !pl_display">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td>
-                            @if ($by == 'm')
-                                {{ number_format($this->total_mol_pnl_by_year($year) / 1e+6, 2) }}M
-                            @elseif ($by == 't')
-                                {{ number_format($this->total_mol_pnl_by_year($year) / 1e+3, 2) }}K
-                            @else
-                                {{ number_format($this->total_mol_pnl_by_year($year), 2) }}
-                            @endif
-                        </td>
-                    @endforeach
-                    <td>
-                        @if ($by == 'm')
-                            {{ number_format($this->total_mol_pnl() / 1e+6, 2) }}M
-                        @elseif ($by == 't')
-                            {{ number_format($this->total_mol_pnl() / 1e+3, 2) }}K
-                        @else
-                            {{ number_format($this->total_mol_pnl(), 2) }}
-                        @endif
-                    </td>
-                </tr>
-                @foreach($project->marketMetric->strengths as $strength)
-                    <tr x-cloak x-show="pl_display"
-                        x-transition:enter="transition ease-out duration-{{ $loop->iteration * 100 }}"
-                        x-transition:enter-start="opacity-0 transform scale-90"
-                        x-transition:enter-end="opacity-100 transform scale-100"
-                        x-transition:leave="transition ease-in duration-{{ $loop->remaining * 100 }}"
-                        x-transition:leave-start="opacity-100 transform scale-100"
-                        x-transition:leave-end="opacity-0 transform scale-90"
-                    >
-                        <th class="whitespace-nowrap">{{ $strength->name }}</th>
-                        @foreach ($project->yearsTillLaunch() as $year)
-                            <td x-cloak x-show="pre_display" class="text-center">-</td>
-                        @endforeach
-                        @foreach ($project->xMonthsFromLaunch() as $year)
-                            <td>
-                                @if ($by == 'm')
-                                    {{ number_format($this->calculate_mol_pnl($strength->name, $year) / 1e+6, 2) }}M
-                                @elseif ($by == 't')
-                                    {{ number_format($this->calculate_mol_pnl($strength->name, $year) / 1e+3, 2) }}K
-                                @else
-                                    {{ number_format($this->calculate_mol_pnl($strength->name, $year), 2) }}
-                                @endif
-                            </td>
-                        @endforeach
-                        <td>
-                            @if ($by == 'm')
-                                {{ number_format($this->total_mol_pnl_by_strength($strength->name) / 1e+6, 2) }}M
-                            @elseif ($by == 't')
-                                {{ number_format($this->total_mol_pnl_by_strength($strength->name) / 1e+3, 2) }}K
-                            @else
-                                {{ number_format($this->total_mol_pnl_by_strength($strength->name), 2) }}
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
-
-                <x-seperator />
-
-                <tr class="bg-green-300">
-                    <th class="whitespace-nowrap flex justify-between">
-                        {{ __('COGS') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
-                            :class="{'rotate-180': cogs_display}" @click="cogs_display = !cogs_display">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td>
-                            @if ($by == 'm')
-                                {{ number_format($this->total_cogs_by_year($year) / 1e+6, 2) }}M
-                            @elseif ($by == 't')
-                                {{ number_format($this->total_cogs_by_year($year) / 1e+3, 2) }}K
-                            @else
-                                {{ number_format($this->total_cogs_by_year($year), 2) }}
-                            @endif
-                        </td>
-                    @endforeach
-                    <td>
-                        @if ($by == 'm')
-                            {{ number_format($this->total_cogs() / 1e+6, 2) }}M
-                        @elseif ($by == 't')
-                            {{ number_format($this->total_cogs() / 1e+3, 2) }}K
-                        @else
-                            {{ number_format($this->total_cogs(), 2) }}
-                        @endif
-                    </td>
-                </tr>
-                @foreach($project->marketMetric->strengths as $strength)
-                    <tr x-cloak x-show="cogs_display"
-                        x-transition:enter="transition ease-out duration-{{ $loop->iteration * 100 }}"
-                        x-transition:enter-start="opacity-0 transform scale-90"
-                        x-transition:enter-end="opacity-100 transform scale-100"
-                        x-transition:leave="transition ease-in duration-{{ $loop->remaining * 100 }}"
-                        x-transition:leave-start="opacity-100 transform scale-100"
-                        x-transition:leave-end="opacity-0 transform scale-90"
-                    >
-                        <th class="whitespace-nowrap">{{ $strength->name }}</th>
-                        @foreach ($project->yearsTillLaunch() as $year)
-                            <td x-cloak x-show="pre_display" class="text-center">-</td>
-                        @endforeach
-                        @foreach ($project->xMonthsFromLaunch() as $year)
-                            <td>
-                                @if ($by == 'm')
-                                    {{ number_format($this->calculate_cogs($strength->name, $year) / 1e+6, 2) }}M
-                                @elseif ($by == 't')
-                                    {{ number_format($this->calculate_cogs($strength->name, $year) / 1e+3, 2) }}K
-                                @else
-                                    {{ number_format($this->calculate_cogs($strength->name, $year), 2) }}
-                                @endif
-                            </td>
-                        @endforeach
-                        <td>
-                            @if ($by == 'm')
-                                {{ number_format($this->total_cogs_by_strength($strength->name) / 1e+6, 2) }}M
-                            @elseif ($by == 't')
-                                {{ number_format($this->total_cogs_by_strength($strength->name) / 1e+3, 2) }}K
-                            @else
-                                {{ number_format($this->total_cogs_by_strength($strength->name), 2) }}
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
-
-                <x-seperator />
-
-                <tr class="bg-green-300">
-                    <th>Gross Profit</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td>
-                            @if ($by == 'm')
-                                {{ number_format($this->gross_profit_by_year($year) / 1e+6, 2) }}M
-                            @elseif ($by == 't')
-                                {{ number_format($this->gross_profit_by_year($year) / 1e+3, 2) }}K
-                            @else
-                                {{ number_format($this->gross_profit_by_year($year), 2) }}
-                            @endif
-                        </td>
-                    @endforeach
-                    <td>
-                        @if ($by == 'm')
-                            {{ number_format($this->gross_profit_total() / 1e+6, 2) }}M
-                        @elseif ($by == 't')
-                            {{ number_format($this->gross_profit_total() / 1e+3, 2) }}K
-                        @else
-                            {{ number_format($this->gross_profit_total(), 2) }}
-                        @endif
-                    </td>
-                </tr>
-                <tr class="bg-green-300">
-                    <th>Gross Profit %</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td>
-                            {{ number_format($this->gross_profit_percent_by_year($year), 2) . '%' }}
-                        </td>
-                    @endforeach
-                    <td>
-                        {{ number_format($this->gross_profit_percent_total(), 2) . '%' }}
-                    </td>
-                </tr>
-
-                <x-seperator />
-
-                <tr class="bg-green-300">
-                    <th class="whitespace-nowrap flex justify-between">
-                        {{ __('PBT') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
-                            :class="{'rotate-180': oc_display}" @click="oc_display = !oc_display">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                        </svg>
-                    </th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td>
-                            @if ($by == 'm')
-                                {{ number_format(($this->gross_profit_by_year($year) - $this->get_operating_cost_by_year($year)) / 1e+6, 2) }}M
-                            @elseif ($by == 't')
-                                {{ number_format(($this->gross_profit_by_year($year) - $this->get_operating_cost_by_year($year)) / 1e+3, 2) }}K
-                            @else
-                                {{ number_format(($this->gross_profit_by_year($year) - $this->get_operating_cost_by_year($year)), 2) }}
-                            @endif
-                        </td>
-                    @endforeach
-                    <td>
-                        @if ($by == 'm')
-                            {{ number_format(($this->gross_profit_total($year) - $this->get_operating_total($year)) / 1e+6, 2) }}M
-                        @elseif ($by == 't')
-                            {{ number_format(($this->gross_profit_total($year) - $this->get_operating_total($year)) / 1e+3, 2) }}K
-                        @else
-                            {{ number_format(($this->gross_profit_total($year) - $this->get_operating_total($year)), 2) }}
-                        @endif
-                    </td>
-                </tr>
-                <tr x-cloak x-show="oc_display"
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-400"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Development Cost</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
-                            x-data="{editing:false}">
-                            <input class="w-full" x-cloak x-ref="input" wire:model="operatings.{{ $year }}.development_cost.0"
-                                x-show="editing" type="text"/>
-                            <span x-show="!editing" x-cloak
-                                class="bg-yellow-100 w-full block"
-                                :class="{
-                                    'bg-green-200': operatings['{{ $year }}']['development_cost'][1] == operatings['{{ $year }}']['development_cost'][0],
-                                    'bg-red-200': operatings['{{ $year }}']['development_cost'][1] != operatings['{{ $year }}']['development_cost'][0]
-                                }"
-                            >
-                                {{ $operatings[$year]['development_cost'][0] }}
-                            </span>
-                        </td>
-                    @endforeach
-                    <td>
-                        {{ $this->get_operating_cost_by_type('development_cost') }}
-                    </td>
-                </tr>
-                <tr x-cloak x-show="oc_display"
-                    x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-300"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Litigation Cost</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
-                            x-data="{editing:false}">
-                            <input class="w-full" x-cloak x-ref="input" wire:model="operatings.{{ $year }}.litigation_cost.0"
-                                x-show="editing" type="text"/>
-                            <span x-show="!editing" x-cloak
-                                class="bg-yellow-100 w-full block"
-                                :class="{
-                                    'bg-green-200': operatings['{{ $year }}']['litigation_cost'][1] == operatings['{{ $year }}']['litigation_cost'][0],
-                                    'bg-red-200': operatings['{{ $year }}']['litigation_cost'][1] != operatings['{{ $year }}']['litigation_cost'][0]
-                                }"
-                            >
-                                {{ $operatings[$year]['litigation_cost'][0] }}
-                            </span>
-                        </td>
-                    @endforeach
-                    <td>
-                        {{ $this->get_operating_cost_by_type('litigation_cost') }}
-                    </td>
-                </tr>
-                <tr x-cloak x-show="oc_display"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Other Costs</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
-                            x-data="{editing:false}">
-                            <input x-cloak x-ref="input" wire:model="operatings.{{ $year }}.other_cost.0" class="w-full"
-                                x-show="editing" class="w-full" type="text"/>
-                            <span x-show="!editing" x-cloak
-                                class="bg-yellow-100 w-full block"
-                                :class="{
-                                    'bg-green-200': operatings['{{ $year }}']['other_cost'][1] == operatings['{{ $year }}']['other_cost'][0],
-                                    'bg-red-200': operatings['{{ $year }}']['other_cost'][1] != operatings['{{ $year }}']['other_cost'][0]
-                                }"
-                            >
-                                {{ $operatings[$year]['other_cost'][0] }}
-                            </span>
-                        </td>
-                    @endforeach
-                    <td>
-                        {{ $this->get_operating_cost_by_type('other_cost') }}
-                    </td>
-                </tr>
-                <tr x-cloak x-show="oc_display"
-                    x-transition:enter="transition ease-out duration-400"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-100"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
-                    <th>Total Operating Costs</th>
-                    @foreach ($project->yearsTillLaunch() as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
-                    @foreach ($project->xMonthsFromLaunch() as $year)
-                        <td class="border w-20 border-gray-800">
-                            {{ $this->get_operating_cost_by_year($year) }}
-                        </td>
-                    @endforeach
-                    <td class="border w-20 border-gray-800">
-                        {{ $this->get_operating_total() }}
-                    </td>
-                </tr>
-
-                <x-seperator />
-
-                <tr class="bg-green-300">
-                    <th class="whitespace-nowrap flex justify-between">
+                    <th class="whitespace-nowrap flex justify-between items-center">
                         {{ __('Growth Assumptions') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
                             :class="{'rotate-180': ga_display}" @click="ga_display = !ga_display">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
@@ -547,7 +67,7 @@
                                 <span x-show="!editing" x-cloak
                                     class="bg-yellow-100 w-full block"
                                     :class="{
-                                        'bg-green-200': future_matrix['{{ $strength->name }}']['{{ $year }}'][2] && future_matrix['{{ $strength->name }}']['{{ $year }}'][1] == future_matrix['{{ $strength->name }}']['{{ $year }}'][0],
+                                        'bg-gray-200': future_matrix['{{ $strength->name }}']['{{ $year }}'][2] && future_matrix['{{ $strength->name }}']['{{ $year }}'][1] == future_matrix['{{ $strength->name }}']['{{ $year }}'][0],
                                         'bg-red-200': future_matrix['{{ $strength->name }}']['{{ $year }}'][1] != future_matrix['{{ $strength->name }}']['{{ $year }}'][0]
                                     }"
                                     >
@@ -558,17 +78,27 @@
                     </tr>
                 @endforeach
 
-                <x-seperator />
 
                 <tr class="bg-green-300">
-                    <th class="whitespace-nowrap flex justify-between">
+                    <th class="whitespace-nowrap flex justify-between items-center">
                         {{ __('Market Volumes') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
                             :class="{'rotate-180': mv_display}" @click="mv_display = !mv_display">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
                     </th>
-                    <td colspan="{{ $project->years->count() + $project->extra_years->count() + 1 }}"></td>
+                    <td colspan="{{ $project->yearsTillLaunch()->count() }}"></td>
+                    @foreach($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            @if ($by == 'm')
+                                {{ number_format($this->total_vol_for($year) / 1.0e+6, 2) }}M
+                            @elseif ($by == 't')
+                                {{ number_format($this->total_vol_for($year) / 1.0e+3, 2) }}K
+                            @else
+                                {{ number_format($this->total_vol_for($year), 2) }}
+                            @endif
+                        </td>
+                    @endforeach
                 </tr>
                 @foreach ($project->marketMetric->strengths as $strength)
                     <tr x-cloak x-show="mv_display"
@@ -588,7 +118,7 @@
                                 <span x-show="!editing" x-cloak
                                     class="bg-yellow-100 w-full block"
                                     :class="{
-                                        'bg-green-200': matrix['{{ $strength->name }}']['{{ $year }}'][2] && matrix['{{ $strength->name }}']['{{ $year }}'][1] == matrix['{{ $strength->name }}']['{{ $year }}'][0],
+                                        'bg-gray-200': matrix['{{ $strength->name }}']['{{ $year }}'][2] && matrix['{{ $strength->name }}']['{{ $year }}'][1] == matrix['{{ $strength->name }}']['{{ $year }}'][0],
                                         'bg-red-200': matrix['{{ $strength->name }}']['{{ $year }}'][1] != matrix['{{ $strength->name }}']['{{ $year }}'][0]
                                     }"
                                     >
@@ -618,12 +148,10 @@
                     </tr>
                 @endforeach
 
-                <x-seperator />
-
                 <tr class="bg-green-300">
-                    <th class="whitespace-nowrap flex justify-between">
+                    <th class="whitespace-nowrap flex justify-between items-center">
                         {{ __('Market Sales') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
                             :class="{'rotate-180': ms_display}" @click="ms_display = !ms_display">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
@@ -656,19 +184,142 @@
                         @endforeach
                     </tr>
                 @endforeach
+            </tbody>
+        </table>
+    </section>
 
-                <x-seperator />
+    <section class="lock-div">
+        <h2 class="text-lg font-bold">Assumptions and Calculations</h2>
+        <table class="text-sm text-right" x-data="{
+            master_display: false, fv_display: false, su_display: false, cu_display: false, info_display: false
+        }">
+            <thead>
+                <th style="padding-right:0; padding-left:1em;" class="whitespace-nowrap flex justify-between items-center">
+                    Years
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                        @click="if (!master_display) { master_display = true; fv_display = true; su_display = true; cu_display = true; info_display = true; } else { master_display = false; fv_display = false; su_display = false; cu_display = false; info_display = false; }"
+                        :class="{'rotate-180': master_display}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </th>
+                <th colspan="4"></th>
+                @foreach ($project->xMonthsFromLaunch() as $year)
+                    @if (date('Y', strtotime($year)) == date('Y', strtotime($project->productMetric->launch_date)))
+                        <th style="background-color:rgb(233 213 255);color:#222">{{ date('Y', strtotime($year)) }}</th>
+                    @else
+                        <th>{{ date('Y', strtotime($year)) }}</th>
+                    @endif
+                @endforeach
+            </thead>
+            <tbody>
+                <tr>
+                    <th>Expected Competitors</th>
+                    <td colspan="4"></td>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                            x-data="{editing:false}">
+                            <input x-cloak x-ref="input" wire:model="extra_info.{{ $year }}.expected_competitors.0"
+                                x-show="editing" class="w-full" type="text"/>
+                            <span x-show="!editing" x-cloak
+                                class="bg-yellow-100 w-full block"
+                                :class="{
+                                    'bg-gray-200': extra_info['{{ $year }}']['expected_competitors'][1] == extra_info['{{ $year }}']['expected_competitors'][0],
+                                    'bg-red-200': extra_info['{{ $year }}']['expected_competitors'][1] != extra_info['{{ $year }}']['expected_competitors'][0]
+                                }"
+                            >
+                                {{ $extra_info[$year]['expected_competitors'][0] }}
+                            </span>
+                        </td>
+                    @endforeach
+                </tr>
+                <tr>
+                    <th>Order of Entry</th>
+                    <td colspan="4"></td>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                            x-data="{editing:false}">
+                            <input x-cloak x-ref="input" wire:model="extra_info.{{ $year }}.order_of_entry.0"
+                                x-show="editing" class="w-full" type="text"/>
+                            <span x-show="!editing" x-cloak
+                                class="bg-yellow-100 w-full block"
+                                :class="{
+                                    'bg-gray-200': extra_info['{{ $year }}']['order_of_entry'][1] == extra_info['{{ $year }}']['order_of_entry'][0],
+                                    'bg-red-200': extra_info['{{ $year }}']['order_of_entry'][1] != extra_info['{{ $year }}']['order_of_entry'][0]
+                                }"
+                            >
+                                {{ $extra_info[$year]['order_of_entry'][0] }}
+                            </span>
+                        </td>
+                    @endforeach
+                </tr>
+
+                <th class="whitespace-nowrap flex justify-between items-center">
+                    {{ __('Info') }}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                        :class="{'rotate-180': info_display}" @click="info_display = !info_display">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                    <td colspan="100%"></td>
+                </th>
+
+                <tr x-cloak x-show="info_display"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 transform scale-90"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:leave="transition ease-in duration-500"
+                    x-transition:leave-start="opacity-100 transform scale-100"
+                    x-transition:leave-end="opacity-0 transform scale-90"
+                >
+                    <th>Sales Months</th>
+                    <td colspan="4"></td>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            {{ $extra_info[$year]['sales_months'] }}
+                        </td>
+                    @endforeach
+                </tr>
+                <tr x-cloak x-show="info_display"
+                    x-transition:enter="transition ease-out duration-400"
+                    x-transition:enter-start="opacity-0 transform scale-90"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 transform scale-100"
+                    x-transition:leave-end="opacity-0 transform scale-90"
+                >
+                    <th>Market Share</th>
+                    <td colspan="4"></td>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            {{ $this->get_market_share($year) . '%' }}
+                        </td>
+                    @endforeach
+                </tr>
+                <tr x-cloak x-show="info_display"
+                    x-transition:enter="transition ease-out duration-500"
+                    x-transition:enter-start="opacity-0 transform scale-90"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:leave="transition ease-in duration-50"
+                    x-transition:leave-start="opacity-100 transform scale-100"
+                    x-transition:leave-end="opacity-0 transform scale-90"
+                >
+                    <th>Effective Market Share</th>
+                    <td colspan="4"></td>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            {{ $this->get_effective_market_share($year) . '%' }}
+                        </td>
+                    @endforeach
+                </tr>
 
                 <tr class="bg-green-300">
-                    <th class="whitespace-nowrap flex justify-between">
+                    <th class="whitespace-nowrap flex justify-between items-center">
                         {{ __('Selling Price / Unit') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
                             :class="{'rotate-180': su_display}" @click="su_display = !su_display">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
                     </th>
-                    <td colspan="{{ $project->yearsTillLaunch()->count() - 4 }}">-</td>
-                    <td x-cloak x-show="pre_display" class="whitespace-nowrap">Growth Percent</td>
+                    <td x-cloak class="whitespace-nowrap">Growth Percent</td>
                     <td>Current</td>
                     <td>Loe</td>
                     <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
@@ -678,7 +329,7 @@
                         <span x-show="!editing" x-cloak
                             class="bg-yellow-100 w-full block"
                             :class="{
-                                'bg-green-200': loss[1] == loss[0],
+                                'bg-gray-200': loss[1] == loss[0],
                                 'bg-red-200': loss[1] != loss[0]
                             }"
                         >
@@ -697,9 +348,6 @@
                         x-transition:leave-end="opacity-0 transform scale-90"
                     >
                         <th>{{ $strength->name }}</th>
-                        @foreach (collect($project->yearsTillLaunch())->slice(0, -4) as $year)
-                            <td x-cloak x-show="pre_display" class="text-center">-</td>
-                        @endforeach
                         <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
                             x-data="{editing:false}">
                             <input x-cloak x-ref="input" wire:model="spu_growth_matrix.{{ $strength->name }}.0"
@@ -707,7 +355,7 @@
                             <span x-show="!editing" x-cloak
                                 class="bg-yellow-100 w-full block"
                                 :class="{
-                                    'bg-green-200': spu_growth_matrix['{{ $strength->name }}'][1] == spu_growth_matrix['{{ $strength->name }}'][0],
+                                    'bg-gray-200': spu_growth_matrix['{{ $strength->name }}'][1] == spu_growth_matrix['{{ $strength->name }}'][0],
                                     'bg-red-200': spu_growth_matrix['{{ $strength->name }}'][1] != spu_growth_matrix['{{ $strength->name }}'][0]
                                 }"
                             >
@@ -739,19 +387,15 @@
                     </tr>
                 @endforeach
 
-                <x-seperator />
-
                 <tr class="bg-green-300">
-                    <th class="whitespace-nowrap flex justify-between">
+                    <th class="whitespace-nowrap flex justify-between items-center">
                         {{ __('COGS / Unit') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 inline-block"
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
                             :class="{'rotate-180': cu_display}" @click="cu_display = !cu_display">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
                     </th>
-                    @foreach (collect($project->yearsTillLaunch())->slice(0, -2) as $year)
-                        <td x-cloak x-show="pre_display" class="text-center">-</td>
-                    @endforeach
+                    <td colspan="2"></td>
                     <td>Actuals</td>
                     <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
                         x-data="{editing:false}">
@@ -760,7 +404,7 @@
                         <span x-show="!editing" x-cloak
                             class="bg-yellow-100 w-full block"
                             :class="{
-                                'bg-green-200': cogs[1] == cogs[0],
+                                'bg-gray-200': cogs[1] == cogs[0],
                                 'bg-red-200': cogs[1] != cogs[0]
                             }"
                         >
@@ -778,9 +422,7 @@
                         x-transition:leave-end="opacity-0 transform scale-90"
                     >
                         <th>{{ $strength->name }}</th>
-                        @foreach(collect($project->yearsTillLaunch())->slice(0, -2) as $year)
-                            <td x-cloak x-show="pre_display" class="text-center">-</td>
-                        @endforeach
+                        <td colspan="2"></td>
                         <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
                             x-data="{editing:false}">
                             <input x-cloak x-ref="input" wire:model="actuals.{{ $strength->name }}.0"
@@ -788,7 +430,7 @@
                             <span x-show="!editing" x-cloak
                                 class="bg-yellow-100 w-full block"
                                 :class="{
-                                    'bg-green-200': actuals['{{ $strength->name }}'][1] == actuals['{{ $strength->name }}'][0],
+                                    'bg-gray-200': actuals['{{ $strength->name }}'][1] == actuals['{{ $strength->name }}'][0],
                                     'bg-red-200': actuals['{{ $strength->name }}'][1] != actuals['{{ $strength->name }}'][0]
                                 }"
                             >
@@ -805,6 +447,353 @@
                         @endforeach
                     </tr>
                 @endforeach
+
+                <th class="whitespace-nowrap flex justify-between items-center">
+                    {{ __('Forecasted Volume') }}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                        :class="{'rotate-180': fv_display}" @click="fv_display = !fv_display">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                    <td class="bg-green-300" colspan="100%"></td>
+                </th>
+
+                @foreach($project->marketMetric->strengths as $strength)
+                    <tr
+                        x-cloak x-show="fv_display"
+                        x-transition:enter="transition ease-out duration-{{ $loop->iteration * 100 }}"
+                        x-transition:enter-start="opacity-0 transform scale-90"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        x-transition:leave="transition ease-in duration-{{ $loop->remaining * 100 }}"
+                        x-transition:leave-start="opacity-100 transform scale-100"
+                        x-transition:leave-end="opacity-0 transform scale-90"
+                    >
+                        <th>{{ $strength->name }}</th>
+                        <td colspan="4"></td>
+                        @foreach ($project->xMonthsFromLaunch() as $year)
+                            <td>
+                                {{ $this->get_market_size($strength->name, $year) }}
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </section>
+
+    <section class="lock-div">
+        <h2 class="text-lg font-bold">Forecast Data</h2>
+        <table x-data="{
+            master_display: false, pl_display: false, cogs_display: false, oc_display: false, info_display: false, su_display: false, cu_display: false,
+        }" class="text-sm text-right"
+        >
+            <thead>
+                <th style="padding-right:0; padding-left:1em;" class="whitespace-nowrap flex justify-between items-center">
+                    Years
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                        @click="if (!master_display) { master_display = true; pl_display = true; cogs_display = true; oc_display = true; info_display = true; su_display = true; cu_display = true; } else { master_display = false; pl_display = false; cogs_display = false; oc_display = false; info_display = false; su_display = false; cu_display = false; }"
+                        :class="{'rotate-180': master_display}">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </th>
+                @foreach ($project->xMonthsFromLaunch() as $year)
+                    @if (date('Y', strtotime($year)) == date('Y', strtotime($project->productMetric->launch_date)))
+                        <th style="background-color:rgb(233 213 255);color:#222">{{ date('Y', strtotime($year)) }}</th>
+                    @else
+                        <th>{{ date('Y', strtotime($year)) }}</th>
+                    @endif
+                @endforeach
+                <th>Total</th>
+            </thead>
+            <tbody>
+                <tr class="bg-green-300">
+                    <th class="whitespace-nowrap flex justify-between items-center">
+                        {{ __('Est. Sales') }}
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                            :class="{'rotate-180': pl_display}" @click="pl_display = !pl_display">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            @if ($by == 'm')
+                                {{ number_format($this->total_mol_pnl_by_year($year) / 1e+6, 2) }}M
+                            @elseif ($by == 't')
+                                {{ number_format($this->total_mol_pnl_by_year($year) / 1e+3, 2) }}K
+                            @else
+                                {{ number_format($this->total_mol_pnl_by_year($year), 2) }}
+                            @endif
+                        </td>
+                    @endforeach
+                    <td>
+                        @if ($by == 'm')
+                            {{ number_format($this->total_mol_pnl() / 1e+6, 2) }}M
+                        @elseif ($by == 't')
+                            {{ number_format($this->total_mol_pnl() / 1e+3, 2) }}K
+                        @else
+                            {{ number_format($this->total_mol_pnl(), 2) }}
+                        @endif
+                    </td>
+                </tr>
+                @foreach($project->marketMetric->strengths as $strength)
+                    <tr x-cloak x-show="pl_display"
+                        x-transition:enter="transition ease-out duration-{{ $loop->iteration * 100 }}"
+                        x-transition:enter-start="opacity-0 transform scale-90"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        x-transition:leave="transition ease-in duration-{{ $loop->remaining * 100 }}"
+                        x-transition:leave-start="opacity-100 transform scale-100"
+                        x-transition:leave-end="opacity-0 transform scale-90"
+                    >
+                        <th class="whitespace-nowrap">{{ $strength->name }}</th>
+                        @foreach ($project->xMonthsFromLaunch() as $year)
+                            <td>
+                                @if ($by == 'm')
+                                    {{ number_format($this->calculate_mol_pnl($strength->name, $year) / 1e+6, 2) }}M
+                                @elseif ($by == 't')
+                                    {{ number_format($this->calculate_mol_pnl($strength->name, $year) / 1e+3, 2) }}K
+                                @else
+                                    {{ number_format($this->calculate_mol_pnl($strength->name, $year), 2) }}
+                                @endif
+                            </td>
+                        @endforeach
+                        <td>
+                            @if ($by == 'm')
+                                {{ number_format($this->total_mol_pnl_by_strength($strength->name) / 1e+6, 2) }}M
+                            @elseif ($by == 't')
+                                {{ number_format($this->total_mol_pnl_by_strength($strength->name) / 1e+3, 2) }}K
+                            @else
+                                {{ number_format($this->total_mol_pnl_by_strength($strength->name), 2) }}
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+
+                <tr class="bg-green-300">
+                    <th class="whitespace-nowrap flex justify-between items-center">
+                        {{ __('COGS') }}
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                            :class="{'rotate-180': cogs_display}" @click="cogs_display = !cogs_display">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            @if ($by == 'm')
+                                {{ number_format($this->total_cogs_by_year($year) / 1e+6, 2) }}M
+                            @elseif ($by == 't')
+                                {{ number_format($this->total_cogs_by_year($year) / 1e+3, 2) }}K
+                            @else
+                                {{ number_format($this->total_cogs_by_year($year), 2) }}
+                            @endif
+                        </td>
+                    @endforeach
+                    <td>
+                        @if ($by == 'm')
+                            {{ number_format($this->total_cogs() / 1e+6, 2) }}M
+                        @elseif ($by == 't')
+                            {{ number_format($this->total_cogs() / 1e+3, 2) }}K
+                        @else
+                            {{ number_format($this->total_cogs(), 2) }}
+                        @endif
+                    </td>
+                </tr>
+                @foreach($project->marketMetric->strengths as $strength)
+                    <tr x-cloak x-show="cogs_display"
+                        x-transition:enter="transition ease-out duration-{{ $loop->iteration * 100 }}"
+                        x-transition:enter-start="opacity-0 transform scale-90"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        x-transition:leave="transition ease-in duration-{{ $loop->remaining * 100 }}"
+                        x-transition:leave-start="opacity-100 transform scale-100"
+                        x-transition:leave-end="opacity-0 transform scale-90"
+                    >
+                        <th class="whitespace-nowrap">{{ $strength->name }}</th>
+                        @foreach ($project->xMonthsFromLaunch() as $year)
+                            <td>
+                                @if ($by == 'm')
+                                    {{ number_format($this->calculate_cogs($strength->name, $year) / 1e+6, 2) }}M
+                                @elseif ($by == 't')
+                                    {{ number_format($this->calculate_cogs($strength->name, $year) / 1e+3, 2) }}K
+                                @else
+                                    {{ number_format($this->calculate_cogs($strength->name, $year), 2) }}
+                                @endif
+                            </td>
+                        @endforeach
+                        <td>
+                            @if ($by == 'm')
+                                {{ number_format($this->total_cogs_by_strength($strength->name) / 1e+6, 2) }}M
+                            @elseif ($by == 't')
+                                {{ number_format($this->total_cogs_by_strength($strength->name) / 1e+3, 2) }}K
+                            @else
+                                {{ number_format($this->total_cogs_by_strength($strength->name), 2) }}
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+
+
+                <tr class="bg-green-300">
+                    <th>Gross Profit</th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            @if ($by == 'm')
+                                {{ number_format($this->gross_profit_by_year($year) / 1e+6, 2) }}M
+                            @elseif ($by == 't')
+                                {{ number_format($this->gross_profit_by_year($year) / 1e+3, 2) }}K
+                            @else
+                                {{ number_format($this->gross_profit_by_year($year), 2) }}
+                            @endif
+                        </td>
+                    @endforeach
+                    <td>
+                        @if ($by == 'm')
+                            {{ number_format($this->gross_profit_total() / 1e+6, 2) }}M
+                        @elseif ($by == 't')
+                            {{ number_format($this->gross_profit_total() / 1e+3, 2) }}K
+                        @else
+                            {{ number_format($this->gross_profit_total(), 2) }}
+                        @endif
+                    </td>
+                </tr>
+                <tr class="bg-green-300">
+                    <th>Gross Profit %</th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            {{ number_format($this->gross_profit_percent_by_year($year), 2) . '%' }}
+                        </td>
+                    @endforeach
+                    <td>
+                        {{ number_format($this->gross_profit_percent_total(), 2) . '%' }}
+                    </td>
+                </tr>
+
+                <tr class="bg-green-300">
+                    <th class="whitespace-nowrap flex justify-between items-center">
+                        {{ __('Total Operating Costs') }}
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                            :class="{'rotate-180': oc_display}" @click="oc_display = !oc_display">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td class="border w-20 border-gray-800">
+                            {{ $this->get_operating_cost_by_year($year) }}
+                        </td>
+                    @endforeach
+                    <td class="border w-20 border-gray-800">
+                        {{ $this->get_operating_total() }}
+                    </td>
+                </tr>
+                <tr x-cloak x-show="oc_display"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 transform scale-90"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:leave="transition ease-in duration-400"
+                    x-transition:leave-start="opacity-100 transform scale-100"
+                    x-transition:leave-end="opacity-0 transform scale-90"
+                >
+                    <th>Development Cost</th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                            x-data="{editing:false}">
+                            <input class="w-full" x-cloak x-ref="input" wire:model="operatings.{{ $year }}.development_cost.0"
+                                x-show="editing" type="text"/>
+                            <span x-show="!editing" x-cloak
+                                class="bg-yellow-100 w-full block"
+                                :class="{
+                                    'bg-gray-200': operatings['{{ $year }}']['development_cost'][1] == operatings['{{ $year }}']['development_cost'][0],
+                                    'bg-red-200': operatings['{{ $year }}']['development_cost'][1] != operatings['{{ $year }}']['development_cost'][0]
+                                }"
+                            >
+                                {{ $operatings[$year]['development_cost'][0] }}
+                            </span>
+                        </td>
+                    @endforeach
+                    <td>
+                        {{ $this->get_operating_cost_by_type('development_cost') }}
+                    </td>
+                </tr>
+                <tr x-cloak x-show="oc_display"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 transform scale-90"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:leave="transition ease-in duration-300"
+                    x-transition:leave-start="opacity-100 transform scale-100"
+                    x-transition:leave-end="opacity-0 transform scale-90"
+                >
+                    <th>Litigation Cost</th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                            x-data="{editing:false}">
+                            <input class="w-full" x-cloak x-ref="input" wire:model="operatings.{{ $year }}.litigation_cost.0"
+                                x-show="editing" type="text"/>
+                            <span x-show="!editing" x-cloak
+                                class="bg-yellow-100 w-full block"
+                                :class="{
+                                    'bg-gray-200': operatings['{{ $year }}']['litigation_cost'][1] == operatings['{{ $year }}']['litigation_cost'][0],
+                                    'bg-red-200': operatings['{{ $year }}']['litigation_cost'][1] != operatings['{{ $year }}']['litigation_cost'][0]
+                                }"
+                            >
+                                {{ $operatings[$year]['litigation_cost'][0] }}
+                            </span>
+                        </td>
+                    @endforeach
+                    <td>
+                        {{ $this->get_operating_cost_by_type('litigation_cost') }}
+                    </td>
+                </tr>
+                <tr x-cloak x-show="oc_display"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform scale-90"
+                    x-transition:enter-end="opacity-100 transform scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 transform scale-100"
+                    x-transition:leave-end="opacity-0 transform scale-90"
+                >
+                    <th>Other Costs</th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                            x-data="{editing:false}">
+                            <input x-cloak x-ref="input" wire:model="operatings.{{ $year }}.other_cost.0" class="w-full"
+                                x-show="editing" class="w-full" type="text"/>
+                            <span x-show="!editing" x-cloak
+                                class="bg-yellow-100 w-full block"
+                                :class="{
+                                    'bg-gray-200': operatings['{{ $year }}']['other_cost'][1] == operatings['{{ $year }}']['other_cost'][0],
+                                    'bg-red-200': operatings['{{ $year }}']['other_cost'][1] != operatings['{{ $year }}']['other_cost'][0]
+                                }"
+                            >
+                                {{ $operatings[$year]['other_cost'][0] }}
+                            </span>
+                        </td>
+                    @endforeach
+                    <td>
+                        {{ $this->get_operating_cost_by_type('other_cost') }}
+                    </td>
+                </tr>
+                <tr class="bg-green-300">
+                    <th class="whitespace-nowrap flex justify-between items-center">
+                        {{ __('PBT') }}
+                    </th>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            @if ($by == 'm')
+                                {{ number_format(($this->gross_profit_by_year($year) - $this->get_operating_cost_by_year($year)) / 1e+6, 2) }}M
+                            @elseif ($by == 't')
+                                {{ number_format(($this->gross_profit_by_year($year) - $this->get_operating_cost_by_year($year)) / 1e+3, 2) }}K
+                            @else
+                                {{ number_format(($this->gross_profit_by_year($year) - $this->get_operating_cost_by_year($year)), 2) }}
+                            @endif
+                        </td>
+                    @endforeach
+                    <td>
+                        @if ($by == 'm')
+                            {{ number_format(($this->gross_profit_total($year) - $this->get_operating_total($year)) / 1e+6, 2) }}M
+                        @elseif ($by == 't')
+                            {{ number_format(($this->gross_profit_total($year) - $this->get_operating_total($year)) / 1e+3, 2) }}K
+                        @else
+                            {{ number_format(($this->gross_profit_total($year) - $this->get_operating_total($year)), 2) }}
+                        @endif
+                    </td>
+                </tr>
             </tbody>
         </table>
     </section>

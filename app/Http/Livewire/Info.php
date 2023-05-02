@@ -521,6 +521,16 @@ class Info extends Component
         return $this_year_vol;
     }
 
+    public function total_vol_for($year)
+    {
+        $total = 0;
+        foreach ($this->project->marketMetric->strengths as $strength) {
+            $total += $this->calculate_vol($year, $strength->name, false);
+        }
+
+        return $total;
+    }
+
     public function get_market_share($year)
     {
         $comp = $this->extra_info[$year]['expected_competitors'][0];
