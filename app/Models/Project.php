@@ -126,6 +126,7 @@ class Project extends Model
 
         $years = CarbonPeriod::create($first_year, '1 year', $launch->subYear())->excludeEndDate();
         Debugbar::info($years->toArray());
+
         return $years;
     }
 }

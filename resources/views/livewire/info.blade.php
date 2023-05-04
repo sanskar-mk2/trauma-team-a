@@ -11,6 +11,7 @@
         <h2 class="text-lg font-bold">Market Dynamics</h2>
         <table x-data="{
             master_display: false, ga_display: false, mv_display: false, ms_display: false,
+            get pre_display() {return this.master_display || this.ga_display || this.mv_display || this.ms_display;}
         }" class="text-sm text-right"
         >
             <thead>
@@ -23,7 +24,7 @@
                     </svg>
                 </th>
                 @foreach ($project->yearsTillLaunch() as $year)
-                    <th x-cloak>{{ date('Y', strtotime($year)) }}</th>
+                    <th x-cloak x-show="pre_display">{{ date('Y', strtotime($year)) }}</th>
                 @endforeach
                 @foreach ($project->xMonthsFromLaunch() as $year)
                     @if (date('Y', strtotime($year)) == date('Y', strtotime($project->productMetric->launch_date)))
@@ -55,7 +56,7 @@
                     >
                         <th>{{ $strength->name }}</th>
                         @foreach ($project->years as $year)
-                            <td>
+                            <td x-cloak x-show="pre_display">
                                 {{ $this->calculate_perc($year, $strength->name, $reevaluate) }}
                             </td>
                         @endforeach
@@ -87,7 +88,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
                     </th>
-                    <td colspan="{{ $project->yearsTillLaunch()->count() }}"></td>
+                    <td x-cloak x-show="pre_display" colspan="{{ $project->yearsTillLaunch()->count() }}"></td>
                     @foreach($project->xMonthsFromLaunch() as $year)
                         <td>
                             @if ($by == 'm')
@@ -191,13 +192,13 @@
     <section class="lock-div">
         <h2 class="text-lg font-bold">Assumptions and Calculations</h2>
         <table class="text-sm text-right" x-data="{
-            master_display: false, fv_display: false, su_display: false, cu_display: false, info_display: false
+            master_display: false, fv_display: false, su_display: false, cu_display: false,
         }">
             <thead>
                 <th style="padding-right:0; padding-left:1em;" class="whitespace-nowrap flex justify-between items-center">
                     Years
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
-                        @click="if (!master_display) { master_display = true; fv_display = true; su_display = true; cu_display = true; info_display = true; } else { master_display = false; fv_display = false; su_display = false; cu_display = false; info_display = false; }"
+                        @click="if (!master_display) { master_display = true; fv_display = true; su_display = true; cu_display = true; } else { master_display = false; fv_display = false; su_display = false; cu_display = false; }"
                         :class="{'rotate-180': master_display}">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
@@ -253,23 +254,8 @@
                     @endforeach
                 </tr>
 
-                <th class="whitespace-nowrap flex justify-between items-center">
-                    {{ __('Info') }}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
-                        :class="{'rotate-180': info_display}" @click="info_display = !info_display">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                    <td colspan="100%"></td>
-                </th>
 
-                <tr x-cloak x-show="info_display"
-                    x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-500"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
+                <tr>
                     <th>Sales Months</th>
                     <td colspan="4"></td>
                     @foreach ($project->xMonthsFromLaunch() as $year)
@@ -278,14 +264,7 @@
                         </td>
                     @endforeach
                 </tr>
-                <tr x-cloak x-show="info_display"
-                    x-transition:enter="transition ease-out duration-400"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
+                <tr>
                     <th>Market Share</th>
                     <td colspan="4"></td>
                     @foreach ($project->xMonthsFromLaunch() as $year)
@@ -294,19 +273,51 @@
                         </td>
                     @endforeach
                 </tr>
-                <tr x-cloak x-show="info_display"
-                    x-transition:enter="transition ease-out duration-500"
-                    x-transition:enter-start="opacity-0 transform scale-90"
-                    x-transition:enter-end="opacity-100 transform scale-100"
-                    x-transition:leave="transition ease-in duration-50"
-                    x-transition:leave-start="opacity-100 transform scale-100"
-                    x-transition:leave-end="opacity-0 transform scale-90"
-                >
+                <tr>
                     <th>Effective Market Share</th>
                     <td colspan="4"></td>
                     @foreach ($project->xMonthsFromLaunch() as $year)
                         <td>
                             {{ $this->get_effective_market_share($year) . '%' }}
+                        </td>
+                    @endforeach
+                </tr>
+
+                <th class="whitespace-nowrap flex justify-between items-center">
+                    {{ __('Forecasted Volume') }}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
+                        :class="{'rotate-180': fv_display}" @click="fv_display = !fv_display">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                    <td class="bg-green-300" colspan="100%"></td>
+                </th>
+
+                @foreach($project->marketMetric->strengths as $strength)
+                    <tr
+                        x-cloak x-show="fv_display"
+                        x-transition:enter="transition ease-out duration-{{ $loop->iteration * 100 }}"
+                        x-transition:enter-start="opacity-0 transform scale-90"
+                        x-transition:enter-end="opacity-100 transform scale-100"
+                        x-transition:leave="transition ease-in duration-{{ $loop->remaining * 100 }}"
+                        x-transition:leave-start="opacity-100 transform scale-100"
+                        x-transition:leave-end="opacity-0 transform scale-90"
+                    >
+                        <th>{{ $strength->name }}</th>
+                        <td colspan="4"></td>
+                        @foreach ($project->xMonthsFromLaunch() as $year)
+                            <td>
+                                {{ $this->get_market_size($strength->name, $year) }}
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+
+                <tr>
+                    <th>BWAC</th>
+                    <td colspan="4"></td>
+                    @foreach ($project->xMonthsFromLaunch() as $year)
+                        <td>
+                            {{ $this->get_bwac($year) . '%' }}
                         </td>
                     @endforeach
                 </tr>
@@ -319,10 +330,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
                     </th>
-                    <td x-cloak class="whitespace-nowrap">Growth Percent</td>
                     <td>Current</td>
+                    <td x-cloak class="whitespace-nowrap">Growth Percent</td>
                     <td>Loe</td>
-                    <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
+                    <td title="Price Change" x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
                         x-data="{editing:false}">
                         <input x-cloak x-ref="input" wire:model="loss.0" class="w-full"
                             x-show="editing" type="text"/>
@@ -336,6 +347,7 @@
                             {{ $loss[0] . '%' }}
                         </span>
                     </td>
+                    <td colspan="100%"></td>
                 </tr>
 
                 @foreach($project->marketMetric->strengths as $strength)
@@ -348,6 +360,13 @@
                         x-transition:leave-end="opacity-0 transform scale-90"
                     >
                         <th>{{ $strength->name }}</th>
+                        <td>
+                            {{
+                                number_format(
+                                    $current_matrix[$strength->name]
+                                , 2)
+                            }}
+                        </td>
                         <td x-on:click="editing=true; $nextTick(() => {$refs.input.select();});" x-on:click.outside="editing=false"
                             x-data="{editing:false}">
                             <input x-cloak x-ref="input" wire:model="spu_growth_matrix.{{ $strength->name }}.0"
@@ -361,13 +380,6 @@
                             >
                                 {{ $spu_growth_matrix[$strength->name][0] }}
                             </span>
-                        </td>
-                        <td>
-                            {{
-                                number_format(
-                                    $current_matrix[$strength->name]
-                                , 2)
-                            }}
                         </td>
                         <td>
                             {{  number_format (
@@ -448,40 +460,12 @@
                     </tr>
                 @endforeach
 
-                <th class="whitespace-nowrap flex justify-between items-center">
-                    {{ __('Forecasted Volume') }}
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 inline-block"
-                        :class="{'rotate-180': fv_display}" @click="fv_display = !fv_display">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                    <td class="bg-green-300" colspan="100%"></td>
-                </th>
-
-                @foreach($project->marketMetric->strengths as $strength)
-                    <tr
-                        x-cloak x-show="fv_display"
-                        x-transition:enter="transition ease-out duration-{{ $loop->iteration * 100 }}"
-                        x-transition:enter-start="opacity-0 transform scale-90"
-                        x-transition:enter-end="opacity-100 transform scale-100"
-                        x-transition:leave="transition ease-in duration-{{ $loop->remaining * 100 }}"
-                        x-transition:leave-start="opacity-100 transform scale-100"
-                        x-transition:leave-end="opacity-0 transform scale-90"
-                    >
-                        <th>{{ $strength->name }}</th>
-                        <td colspan="4"></td>
-                        @foreach ($project->xMonthsFromLaunch() as $year)
-                            <td>
-                                {{ $this->get_market_size($strength->name, $year) }}
-                            </td>
-                        @endforeach
-                    </tr>
-                @endforeach
             </tbody>
         </table>
     </section>
 
     <section class="lock-div">
-        <h2 class="text-lg font-bold">Forecast Data</h2>
+        <h2 class="text-lg font-bold">Molecule P/L</h2>
         <table x-data="{
             master_display: false, pl_display: false, cogs_display: false, oc_display: false, info_display: false, su_display: false, cu_display: false,
         }" class="text-sm text-right"

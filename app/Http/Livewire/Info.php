@@ -101,6 +101,15 @@ class Info extends Component
         return $matrix;
     }
 
+    public function get_bwac($year)
+    {
+        $comp_matrix = collect(config('comp_matrix'));
+        $filtered = $comp_matrix->where('no_of_players', $this->extra_info[$year]['expected_competitors'][0]);
+        $bwac = $filtered->pluck('bwac')->first();
+
+        return $bwac;
+    }
+
     public function prepare_spu_values()
     {
         $comp_matrix = collect(config('comp_matrix'));
