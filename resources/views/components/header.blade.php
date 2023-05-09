@@ -1,5 +1,5 @@
 <nav class="bg-blue-500 z-10 p-4 flex justify-between items-center shadow-xl sticky h-20 top-0">
-    <div class="flex items-center gap-4">
+    <a class="flex items-center gap-4" href="{{ route('home') }}">
         <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <rect width="50" height="50" fill="url(#pattern0)"/>
             <defs>
@@ -12,7 +12,7 @@
         <h1 class="text-2xl text-white">
             Portfolio Management
         </h1>
-    </div>
+    </a>
     <div class="flex items-center gap-6">
         <div class="relative">
             <input type="text" class="bg-white rounded-lg p-2 w-full" placeholder="Search">
@@ -34,7 +34,13 @@
                         <a href="#">Settings</a>
                     </li>
                     <li class="py-2 px-4">
-                        <a href="#">Logout</a>
+                        {{-- Logout --}}
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <a class="block w-full" href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
+                                Logout
+                            </a>
+                        </form>
                     </li>
                 </ul>
             </div>

@@ -17,19 +17,30 @@
                 <p class="text-gray-600 mb-8">
                     Enter your email and password to login.
                 </p>
-                <form class="bg-blue-500 w-full shadow-md rounded-xl px-8 pt-6 pb-8 mb-4">
+                <form class="bg-blue-500 w-full shadow-md rounded-xl px-8 pt-6 pb-8 mb-4"
+                    method="POST" action="{{ route('login') }}">
+                    @csrf
                     <div class="mb-4">
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Email">
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="username" type="text" placeholder="Email"
+                            autofocus name="email" value="{{ old('email') }}">
+                        @error('email')
+                            <p class="text-red-800 mt-1 text-sm italic">
+                                {{ $message }}
+                            </p>
+                        @enderror
                     </div>
                     <div>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="Password">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                            id="password" type="password" placeholder="Password" name="password">
                     </div>
                     <div class="my-3">
                         <input type="checkbox" name="remember" id="remember">
                         <label class="text-white" for="remember">Remember me</label>
                     </div>
                     <div class="flex items-center justify-center">
-                        <button class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none w-full focus:shadow-outline" type="button">
+                        <button class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none w-full focus:shadow-outline" type="submit">
                             LOGIN
                         </button>
                     </div>

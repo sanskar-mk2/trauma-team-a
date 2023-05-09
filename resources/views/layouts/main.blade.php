@@ -12,7 +12,9 @@
             <aside id="side" class="text-white">
                 <div class="bg-black/80 h-full">
                     <ul class="sticky p-4 top-20 flex flex-col gap-4">
-                        <li>Dashboard</li>
+                        <li>
+                            <a href="{{ route('home') }}">Dashboard</a>
+                        </li>
                         <li>Product Evaluation</li>
                         <li>Reports</li>
                     </ul>

@@ -11,6 +11,7 @@
             display: none !important;
         }
     </style>
+    <title>Pharma App</title>
 </head>
 <body class="font-nunito min-h-screen">
     @yield('content')
