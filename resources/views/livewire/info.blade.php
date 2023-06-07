@@ -1,3 +1,130 @@
+<div>
+    <div class="flex justify-around px-8 py-4 gap-4">
+        <a
+            href="#"
+            class="relative w-full block rounded-sm border-t-4 border-pink-600 p-1 pl-4 shadow-xl"
+        >
+            <div class="flex items-center gap-1">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 text-pink-600 sm:h-8 sm:w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                </svg>
+                <h3 class="text-3xl font-bold">
+                    @if ($by == 'm')
+                        {{ number_format($this->total_mol_pnl() / 1e+6, 2) }}M
+                    @elseif ($by == 't')
+                        {{ number_format($this->total_mol_pnl() / 1e+3, 2) }}K
+                    @else
+                        {{ number_format($this->total_mol_pnl(), 2) }}
+                    @endif
+                </h3>
+            </div>
+
+            <p class="mt-4 font-medium text-gray-500">
+                5 Year Revenue
+            </p>
+        </a>
+
+        <a
+            href="#"
+            class="relative w-full block rounded-sm border-t-4 border-yellow-600 p-1 pl-4 shadow-xl"
+        >
+            <div class="flex items-center gap-1">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 text-yellow-600 sm:h-8 sm:w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                </svg>
+
+                <h3 class="text-3xl font-bold">
+                    @if ($by == 'm')
+                        {{ number_format(($this->gross_profit_total() - $this->get_operating_total()) / 1e+6, 2) }}M
+                    @elseif ($by == 't')
+                        {{ number_format(($this->gross_profit_total() - $this->get_operating_total()) / 1e+3, 2) }}K
+                    @else
+                        {{ number_format(($this->gross_profit_total() - $this->get_operating_total()), 2) }}
+                    @endif
+                </h3>
+            </div>
+
+            <p class="mt-4 font-medium text-gray-500">
+                PBT
+            </p>
+        </a>
+
+        <a
+            href="#"
+            class="relative w-full block rounded-sm border-t-4 border-purple-600 p-1 pl-4 shadow-xl"
+        >
+            <div class="flex items-center gap-1">
+                <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 text-purple-600 sm:h-8 sm:w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                </svg>
+
+                <h3 class="text-3xl font-bold">
+                    <select>
+                        <option>High</option>
+                        <option>Medium</option>
+                        <option>Low</option>
+                    </select>
+                </h3>
+            </div>
+
+            <p class="mt-4 font-medium text-gray-500">
+                Category
+            </p>
+        </a>
+
+        <a
+            href="#"
+            class="relative w-full block rounded-sm border-t-4 border-orange-600 p-1 pl-4 shadow-xl"
+        >
+            <div class="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-orange-600">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                <h3 class="text-3xl font-bold">
+                    {{ \Carbon\Carbon::parse($project->productMetric->launch_date)->format('M Y') }}
+                </h3>
+            </div>
+
+            <p class="mt-4 font-medium text-gray-500">
+                Launch Date
+            </p>
+        </a>
+</div>
+
+<hr>
 <div class="p-8 max-w-6xl flex flex-col gap-2" x-data="{ by: @entangle('by'), future_matrix: @entangle('future_matrix'), matrix: @entangle('matrix'), extra_info: @entangle('extra_info'), operatings: @entangle('operatings'), spu_growth_matrix: @entangle('spu_growth_matrix'), loss: @entangle('loss'), cogs: @entangle('cogs'), actuals: @entangle('actuals')}" >
     <div class="flex items-center">
         <label for="by" class="mx-2 font-medium text-gray-700">By</label>
@@ -781,4 +908,5 @@
             </tbody>
         </table>
     </section>
+</div>
 </div>

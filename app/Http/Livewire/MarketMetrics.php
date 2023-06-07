@@ -66,7 +66,7 @@ class MarketMetrics extends Component
             'name' => $this->search,
         ];
         $response = Http::withBody(json_encode($body), 'application/json')
-            ->get('http://127.0.0.1:8000/search_salts');
+            ->post('http://127.0.0.1:8000/search_salts');
         $this->searchList = array_column($response->json(), 'salt');
         $this->get_dose_forms();
     }
@@ -117,7 +117,7 @@ class MarketMetrics extends Component
     public function save_to_db($md)
     {
         $project = Project::create([
-            'name' => 'Untitled Project',
+            'name' => $this->search,
         ]);
 
         $this->project_id = $project->id;
